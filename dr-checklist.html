@@ -1,0 +1,621 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Worksdrive DR Runbook</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo", sans-serif; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .step-card[data-status="done"] { background: #f0fdf4; border-color: #bbf7d0; }
+    .step-card[data-status="active"] { background: #fffbeb; border-color: #fde68a; box-shadow: 0 0 0 3px rgba(251,191,36,0.15); }
+    .step-card[data-status="hold"] { background: #fef2f2; border-color: #fecaca; }
+    .pulse-dot { animation: pulse 2s infinite; }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .real-mode header { background: #7f1d1d !important; color: white; }
+    .real-mode .mode-badge { background: #dc2626; color: white; }
+    details > summary { list-style: none; cursor: pointer; }
+    details > summary::-webkit-details-marker { display: none; }
+  </style>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800">
+
+<div id="app">
+  <!-- Header -->
+  <header class="bg-slate-900 text-white">
+    <div class="max-w-5xl mx-auto px-6 py-5 flex items-center justify-between gap-4 flex-wrap">
+      <div>
+        <div class="flex items-center gap-3">
+          <div class="text-xs uppercase tracking-widest text-slate-400">DR Runbook</div>
+          <span class="mode-badge text-xs px-2 py-0.5 rounded-full bg-slate-700">훈련 모드</span>
+        </div>
+        <h1 class="text-xl font-bold mt-1">Worksdrive 일본 재해복구</h1>
+        <div class="text-xs text-slate-400 mt-0.5">JP1(도쿄) / JP2(오사카) IDC 장애 시 FE 대응 절차</div>
+      </div>
+      <div class="flex items-center gap-2">
+        <label class="flex items-center gap-2 text-sm bg-slate-800 px-3 py-2 rounded">
+          <input id="modeToggle" type="checkbox" class="accent-red-500" />
+          <span>실전 모드</span>
+        </label>
+        <button id="resetBtn" class="text-sm px-3 py-2 rounded bg-slate-700 hover:bg-slate-600">초기화</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Scenario tabs + progress -->
+  <section class="bg-white border-b border-slate-200">
+    <div class="max-w-5xl mx-auto px-6 py-4">
+      <div class="flex items-center justify-between gap-4 flex-wrap">
+        <div class="flex gap-2">
+          <button class="scenario-btn px-4 py-2 rounded-lg border text-sm font-medium" data-scenario="jp1">JP1 (도쿄) 장애</button>
+          <button class="scenario-btn px-4 py-2 rounded-lg border text-sm font-medium" data-scenario="jp2">JP2 (오사카) 장애</button>
+        </div>
+        <div class="flex items-center gap-3 text-sm text-slate-600">
+          <div>경과 <span id="elapsed" class="mono font-semibold text-slate-900">--:--</span></div>
+          <div class="w-px h-5 bg-slate-200"></div>
+          <div>진행 <span id="progressText" class="mono font-semibold text-slate-900">0/0</span></div>
+        </div>
+      </div>
+      <div class="mt-3 h-2 bg-slate-100 rounded-full overflow-hidden">
+        <div id="progressBar" class="h-full bg-emerald-500 transition-all" style="width: 0%"></div>
+      </div>
+    </div>
+  </section>
+
+  <main class="max-w-5xl mx-auto px-6 py-6 grid gap-6">
+
+    <!-- Context summary -->
+    <section class="bg-white rounded-xl border border-slate-200 p-5">
+      <h2 class="font-semibold text-slate-900">시나리오 컨텍스트</h2>
+      <p id="scenarioDesc" class="text-sm text-slate-600 mt-1"></p>
+
+      <div class="grid md:grid-cols-2 gap-4 mt-4">
+        <div class="rounded-lg border border-emerald-200 bg-emerald-50 p-3">
+          <div class="text-xs font-semibold text-emerald-700 uppercase tracking-wide">조작 대상 (Touch)</div>
+          <div id="touchTarget" class="mono text-sm text-emerald-900 mt-1"></div>
+        </div>
+        <div class="rounded-lg border border-rose-200 bg-rose-50 p-3">
+          <div class="text-xs font-semibold text-rose-700 uppercase tracking-wide">건드리지 말 것 (Do NOT touch)</div>
+          <div id="doNotTouch" class="mono text-sm text-rose-900 mt-1"></div>
+        </div>
+      </div>
+
+      <details class="mt-4">
+        <summary class="text-sm text-slate-600 hover:text-slate-900 inline-flex items-center gap-1">
+          <span class="text-xs">▶</span> GSLB 도메인 구조 (참고)
+        </summary>
+        <div class="mt-3 overflow-x-auto">
+          <table class="w-full text-xs border border-slate-200">
+            <thead class="bg-slate-50">
+              <tr class="text-left">
+                <th class="px-3 py-2 border-b border-slate-200">도메인</th>
+                <th class="px-3 py-2 border-b border-slate-200">용도</th>
+                <th class="px-3 py-2 border-b border-slate-200">N3R 서비스</th>
+              </tr>
+            </thead>
+            <tbody class="mono">
+              <tr><td class="px-3 py-2 border-b">drive.worksmobile.com</td><td class="px-3 py-2 border-b font-sans">메인 (JP1/JP2 프록시)</td><td class="px-3 py-2 border-b">nw-web-real</td></tr>
+              <tr><td class="px-3 py-2 border-b">jp1-link.drive.worksmobile.com</td><td class="px-3 py-2 border-b font-sans">JP1(도쿄) 직접 진입</td><td class="px-3 py-2 border-b">nw-web-real-jp1</td></tr>
+              <tr><td class="px-3 py-2">jp2-link.drive.worksmobile.com</td><td class="px-3 py-2 font-sans">JP2(오사카) 직접 진입</td><td class="px-3 py-2">nw-web-real-jp2</td></tr>
+            </tbody>
+          </table>
+          <p class="text-xs text-slate-500 mt-2">메인 도메인은 JP1/JP2로 프록시만 하므로 FE 별도 대응이 불필요합니다.</p>
+        </div>
+      </details>
+    </section>
+
+    <!-- Steps -->
+    <section id="stepsContainer" class="grid gap-4"></section>
+
+    <!-- Footer summary -->
+    <section class="bg-white rounded-xl border border-slate-200 p-5">
+      <div class="flex items-center justify-between gap-3 flex-wrap">
+        <div>
+          <h2 class="font-semibold text-slate-900">완료 보고</h2>
+          <p class="text-sm text-slate-600 mt-1">완료 후 결과를 마크다운으로 복사해 공유하세요.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="copyReportBtn" class="text-sm px-4 py-2 rounded-lg bg-slate-900 text-white hover:bg-slate-700">리포트 복사 (Markdown)</button>
+        </div>
+      </div>
+      <div id="copyToast" class="hidden mt-3 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-3 py-2">클립보드에 복사되었습니다.</div>
+    </section>
+
+    <p class="text-center text-xs text-slate-400 pb-6">스펙: Worksdrive DR · 출처: spec-manager <span class="mono">f4b1b470</span></p>
+  </main>
+</div>
+
+<!-- Real mode warning modal -->
+<div id="realWarn" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+  <div class="bg-white rounded-xl max-w-md w-full mx-4 p-6">
+    <div class="text-rose-600 font-bold text-lg">실전 모드로 전환합니다</div>
+    <p class="text-sm text-slate-600 mt-2">실제 장애 대응 상황에서만 사용하세요. 외부 링크 클릭 시 N3R 콘솔로 직접 이동합니다.</p>
+    <div class="flex justify-end gap-2 mt-5">
+      <button id="realCancel" class="px-4 py-2 text-sm rounded bg-slate-100 hover:bg-slate-200">취소</button>
+      <button id="realConfirm" class="px-4 py-2 text-sm rounded bg-rose-600 text-white hover:bg-rose-700">실전 진행</button>
+    </div>
+  </div>
+</div>
+
+<!-- Training mode link warning -->
+<div id="trainWarn" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+  <div class="bg-white rounded-xl max-w-md w-full mx-4 p-6">
+    <div class="text-amber-600 font-bold text-lg">도상훈련 안내</div>
+    <p class="text-sm text-slate-600 mt-2">현재 <b>훈련 모드</b>입니다. 실제 N3R 콘솔에서 Backend weight를 변경하지 마세요. 절차 점검만 진행합니다.</p>
+    <p id="trainUrl" class="mono text-xs bg-slate-100 rounded p-2 mt-3 break-all"></p>
+    <div class="flex justify-end gap-2 mt-5">
+      <button id="trainCancel" class="px-4 py-2 text-sm rounded bg-slate-100 hover:bg-slate-200">닫기</button>
+      <button id="trainOpen" class="px-4 py-2 text-sm rounded bg-amber-500 text-white hover:bg-amber-600">새 탭으로 열기 (조회만)</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SCENARIOS = {
+  jp1: {
+    title: "JP1 (도쿄) 장애",
+    description: "도쿄 IDC 장애 가정. JP1 트래픽을 오사카(JP1s)로 강제 전환합니다.",
+    touch: "JP1 ELB · nw-web-real-jp1",
+    doNotTouch: "JP2 ELB · nw-web-real-jp2 (건드리지 마세요)",
+    verifyDomain: "jp1-link.drive.worksmobile.com",
+    expectRegion: "오사카",
+    routeUrl: "https://n3r.navercorp.com/project/works-storage-web-real/elb/services/nw-web-real-jp1/tabs/routing",
+    steps: [
+      {
+        id: "jp1-s1",
+        title: "Step 1. JP1 ELB 라우팅 설정 페이지 진입",
+        body: "N3R 콘솔의 nw-web-real-jp1 서비스 라우팅 탭으로 이동합니다.",
+        link: { label: "JP1 라우트 설정 열기", url: "https://n3r.navercorp.com/project/works-storage-web-real/elb/services/nw-web-real-jp1/tabs/routing" },
+        checks: [
+          "N3R 콘솔에 로그인되어 있다",
+          "프로젝트 works-storage-web-real → ELB → nw-web-real-jp1 → Routing 탭에 진입했다"
+        ]
+      },
+      {
+        id: "jp1-s2",
+        title: "Step 2. default 라우트의 Backend weight 전환",
+        body: "페이지 맨 아래 default 항목의 Edit 버튼을 클릭하여 Backend weight를 100:0 → 0:100 으로 전환합니다.",
+        link: null,
+        checks: [
+          "default 항목의 Edit 버튼을 눌렀다",
+          "Backend weight를 100:0 → 0:100 으로 변경했다",
+          "변경 사항을 저장했다"
+        ]
+      },
+      {
+        id: "jp1-s3",
+        title: "Step 3. 트래픽 절체 확인",
+        body: "jp1-link.drive.worksmobile.com 접속 시 정상 리전(오사카) 응답이 오는지 확인합니다. JP2 ELB는 건드리지 않습니다.",
+        link: { label: "jp1-link 도메인 열기", url: "https://jp1-link.drive.worksmobile.com" },
+        checks: [
+          "jp1-link.drive.worksmobile.com 접속이 정상이다",
+          "응답 리전이 오사카(JP1s)임을 확인했다",
+          "JP2 ELB는 변경하지 않았다"
+        ]
+      }
+    ]
+  },
+  jp2: {
+    title: "JP2 (오사카) 장애",
+    description: "오사카 IDC 장애 가정. JP2 트래픽을 도쿄(JP2s)로 강제 전환합니다.",
+    touch: "JP2 ELB · nw-web-real-jp2",
+    doNotTouch: "JP1 ELB · nw-web-real-jp1 (건드리지 마세요)",
+    verifyDomain: "jp2-link.drive.worksmobile.com",
+    expectRegion: "도쿄",
+    routeUrl: "https://n3r.navercorp.com/project/works-storage-web-real/elb/services/nw-web-real-jp2/tabs/routing",
+    steps: [
+      {
+        id: "jp2-s1",
+        title: "Step 1. JP2 ELB 라우팅 설정 페이지 진입",
+        body: "N3R 콘솔의 nw-web-real-jp2 서비스 라우팅 탭으로 이동합니다.",
+        link: { label: "JP2 라우트 설정 열기", url: "https://n3r.navercorp.com/project/works-storage-web-real/elb/services/nw-web-real-jp2/tabs/routing" },
+        checks: [
+          "N3R 콘솔에 로그인되어 있다",
+          "프로젝트 works-storage-web-real → ELB → nw-web-real-jp2 → Routing 탭에 진입했다"
+        ]
+      },
+      {
+        id: "jp2-s2",
+        title: "Step 2. default 라우트의 Backend weight 전환",
+        body: "페이지 맨 아래 default 항목의 Edit 버튼을 클릭하여 Backend weight를 100:0 → 0:100 으로 전환합니다.",
+        link: null,
+        checks: [
+          "default 항목의 Edit 버튼을 눌렀다",
+          "Backend weight를 100:0 → 0:100 으로 변경했다",
+          "변경 사항을 저장했다"
+        ]
+      },
+      {
+        id: "jp2-s3",
+        title: "Step 3. 트래픽 절체 확인",
+        body: "jp2-link.drive.worksmobile.com 접속 시 정상 리전(도쿄) 응답이 오는지 확인합니다. JP1 ELB는 건드리지 않습니다.",
+        link: { label: "jp2-link 도메인 열기", url: "https://jp2-link.drive.worksmobile.com" },
+        checks: [
+          "jp2-link.drive.worksmobile.com 접속이 정상이다",
+          "응답 리전이 도쿄(JP2s)임을 확인했다",
+          "JP1 ELB는 변경하지 않았다"
+        ]
+      }
+    ]
+  }
+};
+
+const STORAGE_KEY = "wd-dr-runbook-state-v1";
+
+const defaultState = () => ({
+  scenario: "jp1",
+  realMode: false,
+  startedAt: null,
+  finishedAt: null,
+  // per scenario
+  data: {
+    jp1: blankScenarioState("jp1"),
+    jp2: blankScenarioState("jp2")
+  }
+});
+
+function blankScenarioState(sid) {
+  const s = SCENARIOS[sid];
+  return {
+    steps: s.steps.map(st => ({
+      id: st.id,
+      checks: st.checks.map(() => false),
+      note: "",
+      startedAt: null,
+      finishedAt: null,
+      hold: false
+    }))
+  };
+}
+
+let state = loadState();
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return defaultState();
+    const parsed = JSON.parse(raw);
+    // shallow validation
+    if (!parsed.data || !parsed.data.jp1 || !parsed.data.jp2) return defaultState();
+    return parsed;
+  } catch {
+    return defaultState();
+  }
+}
+function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+
+// ----- Render -----
+function render() {
+  document.body.classList.toggle("real-mode", state.realMode);
+  document.querySelector(".mode-badge").textContent = state.realMode ? "실전 모드" : "훈련 모드";
+  document.getElementById("modeToggle").checked = state.realMode;
+
+  // Scenario tabs
+  document.querySelectorAll(".scenario-btn").forEach(btn => {
+    const active = btn.dataset.scenario === state.scenario;
+    btn.className = "scenario-btn px-4 py-2 rounded-lg border text-sm font-medium " +
+      (active ? "bg-slate-900 text-white border-slate-900" : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50");
+  });
+
+  const sc = SCENARIOS[state.scenario];
+  document.getElementById("scenarioDesc").textContent = sc.description;
+  document.getElementById("touchTarget").textContent = sc.touch;
+  document.getElementById("doNotTouch").textContent = sc.doNotTouch;
+
+  renderSteps();
+  renderProgress();
+}
+
+function renderSteps() {
+  const sc = SCENARIOS[state.scenario];
+  const sd = state.data[state.scenario];
+  const container = document.getElementById("stepsContainer");
+  container.innerHTML = "";
+
+  sc.steps.forEach((step, idx) => {
+    const stepState = sd.steps[idx];
+    const allChecked = stepState.checks.every(Boolean);
+    const anyChecked = stepState.checks.some(Boolean);
+    const status = stepState.hold ? "hold" : (allChecked ? "done" : (anyChecked || stepState.startedAt ? "active" : "idle"));
+
+    const card = document.createElement("div");
+    card.className = "step-card bg-white rounded-xl border border-slate-200 p-5";
+    card.dataset.status = status;
+
+    const elapsed = stepState.startedAt ? formatDuration((stepState.finishedAt || Date.now()) - stepState.startedAt) : "--";
+    const startedLabel = stepState.startedAt ? formatTime(stepState.startedAt) : "—";
+    const finishedLabel = stepState.finishedAt ? formatTime(stepState.finishedAt) : "—";
+
+    const statusBadge = ({
+      idle: '<span class="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">대기</span>',
+      active: '<span class="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700"><span class="pulse-dot">●</span> 진행중</span>',
+      done: '<span class="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">완료</span>',
+      hold: '<span class="text-xs px-2 py-0.5 rounded-full bg-rose-100 text-rose-700">보류</span>'
+    })[status];
+
+    const checksHtml = step.checks.map((c, ci) => `
+      <label class="flex items-start gap-2 text-sm py-1 cursor-pointer">
+        <input type="checkbox" class="check mt-0.5 accent-emerald-600" data-step="${idx}" data-check="${ci}" ${stepState.checks[ci] ? "checked" : ""}/>
+        <span class="${stepState.checks[ci] ? 'line-through text-slate-400' : 'text-slate-700'}">${escapeHtml(c)}</span>
+      </label>
+    `).join("");
+
+    const linkHtml = step.link ? `
+      <a class="ext-link inline-flex items-center gap-1 text-sm px-3 py-1.5 rounded-md border border-slate-300 hover:bg-slate-50 mono"
+         data-url="${escapeHtml(step.link.url)}" href="${escapeHtml(step.link.url)}">
+        ${escapeHtml(step.link.label)} ↗
+      </a>` : "";
+
+    card.innerHTML = `
+      <div class="flex items-start justify-between gap-3 flex-wrap">
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="text-xs mono text-slate-500">${idx + 1}/${sc.steps.length}</span>
+            ${statusBadge}
+          </div>
+          <h3 class="font-semibold text-slate-900 mt-1">${escapeHtml(step.title)}</h3>
+          <p class="text-sm text-slate-600 mt-1">${escapeHtml(step.body)}</p>
+        </div>
+        <div class="text-right text-xs text-slate-500 mono">
+          <div>시작 ${startedLabel}</div>
+          <div>완료 ${finishedLabel}</div>
+          <div>소요 ${elapsed}</div>
+        </div>
+      </div>
+
+      ${linkHtml ? `<div class="mt-3">${linkHtml}</div>` : ""}
+
+      <div class="mt-4 grid gap-1 border-t border-slate-100 pt-3">
+        ${checksHtml}
+      </div>
+
+      <div class="mt-3">
+        <textarea class="note w-full text-sm rounded border border-slate-200 p-2 focus:outline-none focus:border-slate-400"
+          rows="2" placeholder="이슈/관찰 메모 (예: 콘솔 응답 지연, weight 적용 후 반영 시간 등)"
+          data-step="${idx}">${escapeHtml(stepState.note || "")}</textarea>
+      </div>
+
+      <div class="mt-3 flex items-center justify-end gap-2">
+        <button class="hold-btn text-xs px-3 py-1.5 rounded border border-rose-300 text-rose-700 hover:bg-rose-50" data-step="${idx}">
+          ${stepState.hold ? "보류 해제" : "보류로 표시"}
+        </button>
+        <button class="reset-step-btn text-xs px-3 py-1.5 rounded border border-slate-300 text-slate-600 hover:bg-slate-50" data-step="${idx}">
+          이 스텝 초기화
+        </button>
+      </div>
+    `;
+
+    container.appendChild(card);
+  });
+
+  // Bind events
+  container.querySelectorAll(".check").forEach(el => {
+    el.addEventListener("change", onCheckChange);
+  });
+  container.querySelectorAll(".note").forEach(el => {
+    el.addEventListener("input", onNoteInput);
+  });
+  container.querySelectorAll(".hold-btn").forEach(el => {
+    el.addEventListener("click", onHoldToggle);
+  });
+  container.querySelectorAll(".reset-step-btn").forEach(el => {
+    el.addEventListener("click", onResetStep);
+  });
+  container.querySelectorAll(".ext-link").forEach(el => {
+    el.addEventListener("click", onExtLinkClick);
+  });
+}
+
+function renderProgress() {
+  const sd = state.data[state.scenario];
+  const sc = SCENARIOS[state.scenario];
+  let total = 0, done = 0;
+  sc.steps.forEach((s, idx) => {
+    s.checks.forEach((_, ci) => {
+      total++;
+      if (sd.steps[idx].checks[ci]) done++;
+    });
+  });
+  const pct = total ? Math.round(done / total * 100) : 0;
+  document.getElementById("progressBar").style.width = pct + "%";
+  document.getElementById("progressText").textContent = `${done}/${total}`;
+
+  // overall elapsed
+  if (state.startedAt) {
+    const end = state.finishedAt || Date.now();
+    document.getElementById("elapsed").textContent = formatDuration(end - state.startedAt);
+  } else {
+    document.getElementById("elapsed").textContent = "--:--";
+  }
+}
+
+// ----- Handlers -----
+function onCheckChange(e) {
+  const stepIdx = +e.target.dataset.step;
+  const checkIdx = +e.target.dataset.check;
+  const sd = state.data[state.scenario];
+  const stepState = sd.steps[stepIdx];
+
+  stepState.checks[checkIdx] = e.target.checked;
+
+  // start tracking
+  if (e.target.checked && !stepState.startedAt) {
+    stepState.startedAt = Date.now();
+  }
+  if (e.target.checked && !state.startedAt) {
+    state.startedAt = Date.now();
+    state.finishedAt = null;
+  }
+  // step completion
+  if (stepState.checks.every(Boolean)) {
+    stepState.finishedAt = Date.now();
+  } else {
+    stepState.finishedAt = null;
+  }
+
+  // overall completion
+  const allDone = SCENARIOS[state.scenario].steps.every((_, i) => sd.steps[i].checks.every(Boolean));
+  state.finishedAt = allDone ? Date.now() : null;
+
+  saveState();
+  render();
+}
+
+function onNoteInput(e) {
+  const stepIdx = +e.target.dataset.step;
+  state.data[state.scenario].steps[stepIdx].note = e.target.value;
+  saveState();
+  // skip full re-render to keep focus
+}
+
+function onHoldToggle(e) {
+  const stepIdx = +e.target.dataset.step;
+  const stepState = state.data[state.scenario].steps[stepIdx];
+  stepState.hold = !stepState.hold;
+  saveState();
+  render();
+}
+
+function onResetStep(e) {
+  const stepIdx = +e.target.dataset.step;
+  if (!confirm("이 스텝의 체크와 메모, 시각을 초기화할까요?")) return;
+  state.data[state.scenario].steps[stepIdx] = blankScenarioState(state.scenario).steps[stepIdx];
+  saveState();
+  render();
+}
+
+function onExtLinkClick(e) {
+  e.preventDefault();
+  const url = e.currentTarget.dataset.url;
+  if (state.realMode) {
+    window.open(url, "_blank", "noopener");
+  } else {
+    document.getElementById("trainUrl").textContent = url;
+    document.getElementById("trainOpen").dataset.url = url;
+    document.getElementById("trainWarn").classList.remove("hidden");
+  }
+}
+
+// Mode toggle
+document.getElementById("modeToggle").addEventListener("change", (e) => {
+  if (e.target.checked) {
+    document.getElementById("realWarn").classList.remove("hidden");
+    e.target.checked = false;
+  } else {
+    state.realMode = false;
+    saveState();
+    render();
+  }
+});
+document.getElementById("realCancel").addEventListener("click", () => {
+  document.getElementById("realWarn").classList.add("hidden");
+});
+document.getElementById("realConfirm").addEventListener("click", () => {
+  state.realMode = true;
+  saveState();
+  document.getElementById("realWarn").classList.add("hidden");
+  render();
+});
+document.getElementById("trainCancel").addEventListener("click", () => {
+  document.getElementById("trainWarn").classList.add("hidden");
+});
+document.getElementById("trainOpen").addEventListener("click", (e) => {
+  const url = e.currentTarget.dataset.url;
+  window.open(url, "_blank", "noopener");
+  document.getElementById("trainWarn").classList.add("hidden");
+});
+
+// Scenario tabs
+document.querySelectorAll(".scenario-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    state.scenario = btn.dataset.scenario;
+    saveState();
+    render();
+  });
+});
+
+// Reset
+document.getElementById("resetBtn").addEventListener("click", () => {
+  if (!confirm("모든 진행 상태를 초기화할까요? (양 시나리오 모두)")) return;
+  state = defaultState();
+  state.realMode = false;
+  saveState();
+  render();
+});
+
+// Copy report
+document.getElementById("copyReportBtn").addEventListener("click", async () => {
+  const md = buildReport();
+  try {
+    await navigator.clipboard.writeText(md);
+    const t = document.getElementById("copyToast");
+    t.classList.remove("hidden");
+    setTimeout(() => t.classList.add("hidden"), 2500);
+  } catch {
+    alert("복사에 실패했습니다. 아래 내용을 직접 복사하세요.\n\n" + md);
+  }
+});
+
+function buildReport() {
+  const sc = SCENARIOS[state.scenario];
+  const sd = state.data[state.scenario];
+  const lines = [];
+  lines.push(`# Worksdrive DR Runbook 리포트`);
+  lines.push("");
+  lines.push(`- 시나리오: **${sc.title}**`);
+  lines.push(`- 모드: ${state.realMode ? "실전" : "훈련(도상)"}`);
+  if (state.startedAt) lines.push(`- 시작: ${formatTime(state.startedAt, true)}`);
+  if (state.finishedAt) lines.push(`- 종료: ${formatTime(state.finishedAt, true)}`);
+  if (state.startedAt) lines.push(`- 총 소요: ${formatDuration((state.finishedAt || Date.now()) - state.startedAt)}`);
+  lines.push("");
+  sc.steps.forEach((s, idx) => {
+    const ss = sd.steps[idx];
+    const allDone = ss.checks.every(Boolean);
+    const status = ss.hold ? "보류" : (allDone ? "완료" : (ss.checks.some(Boolean) || ss.startedAt ? "진행중" : "대기"));
+    lines.push(`## ${s.title} — ${status}`);
+    if (ss.startedAt) lines.push(`- 시작 ${formatTime(ss.startedAt, true)}${ss.finishedAt ? ` · 완료 ${formatTime(ss.finishedAt, true)} · 소요 ${formatDuration(ss.finishedAt - ss.startedAt)}` : ""}`);
+    s.checks.forEach((c, ci) => {
+      lines.push(`- [${ss.checks[ci] ? "x" : " "}] ${c}`);
+    });
+    if (ss.note) {
+      lines.push("");
+      lines.push(`> ${ss.note.split("\n").join("\n> ")}`);
+    }
+    lines.push("");
+  });
+  return lines.join("\n");
+}
+
+// ----- Utils -----
+function pad(n) { return String(n).padStart(2, "0"); }
+function formatTime(ts, withDate = false) {
+  const d = new Date(ts);
+  const t = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  return withDate ? `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${t}` : t;
+}
+function formatDuration(ms) {
+  const s = Math.floor(ms / 1000);
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const ss = s % 60;
+  return h > 0 ? `${h}:${pad(m)}:${pad(ss)}` : `${pad(m)}:${pad(ss)}`;
+}
+function escapeHtml(str) {
+  return String(str ?? "")
+    .replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;").replaceAll("'", "&#39;");
+}
+
+// Tick for live elapsed display
+setInterval(() => {
+  if (state.startedAt && !state.finishedAt) renderProgress();
+}, 1000);
+
+render();
+</script>
+</body>
+</html>
