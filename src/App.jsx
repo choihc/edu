@@ -334,11 +334,20 @@ function Shell({ children }) {
 function HomePage() {
   const menus = [
     {
+      href: "presentation.html",
+      title: "코딩과 AI 패러다임",
+      subtitle: "코딩 기초부터 프롬프트·에이전틱·하네스까지, 약 2시간 분량의 발표 슬라이드",
+      accent: palette.amber,
+      meta: "발표 슬라이드 · 38p",
+      external: true,
+    },
+    {
       href: "#/jp-vocab",
       title: "일본어 단어 암기",
       subtitle: "비슷한 단어를 묶어서 빠르게 외우는 학습 페이지",
       accent: palette.red,
       meta: "플래시카드 · 퀴즈 · 비교표",
+      external: true,
     },
     {
       href: "#/multi-agent",
@@ -346,6 +355,7 @@ function HomePage() {
       subtitle: "기존 CLAUDE.md 프로세스 시각화 화면",
       accent: palette.blue,
       meta: "페르소나 · 플로우 · PR 절차",
+      external: true,
     },
     {
       href: "#/spec-manager",
@@ -353,6 +363,7 @@ function HomePage() {
       subtitle: "spec-manager 소개 슬라이드",
       accent: palette.green,
       meta: "발표 모드",
+      external: true,
     },
   ];
 
@@ -370,7 +381,7 @@ function HomePage() {
         >
           <div>
             <div style={{ color: palette.red, fontWeight: 900, marginBottom: 14 }}>
-              Study Launcher
+              Service Launcher
             </div>
             <h1
               style={{
@@ -381,12 +392,12 @@ function HomePage() {
                 letterSpacing: 0,
               }}
             >
-              오늘 볼 화면을 선택하세요
+              각 서비스에 접속해 보세요
             </h1>
           </div>
           <p style={{ margin: 0, color: palette.muted, fontSize: 18, lineHeight: 1.8 }}>
-            기본 시작화면에서 학습 페이지와 기존 자료를 바로 고를 수 있게 구성했습니다.
-            지금은 일본어 단어 암기를 가장 먼저 시작할 수 있습니다.
+            아래 카드 중 원하는 자료를 골라 누르면 새 창에서 열립니다.
+            여러 자료를 동시에 열어두고 비교하며 보실 수 있습니다.
           </p>
         </section>
 
@@ -401,6 +412,8 @@ function HomePage() {
             <a
               key={menu.href}
               href={menu.href}
+              target={menu.external ? "_blank" : undefined}
+              rel={menu.external ? "noopener noreferrer" : undefined}
               style={{
                 minHeight: 230,
                 padding: 24,
@@ -434,7 +447,7 @@ function HomePage() {
                 {menu.subtitle}
               </p>
               <div style={{ marginTop: "auto", color: menu.accent, fontWeight: 900 }}>
-                들어가기
+                {menu.external ? "새 창으로 열기 ↗" : "들어가기"}
               </div>
             </a>
           ))}

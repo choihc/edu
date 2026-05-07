@@ -1,0 +1,1909 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>코딩과 AI 패러다임 — 입문 가이드</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
+<style>
+  :root{
+    --brand-green:#03C75A;
+    --brand-green-dark:#02A34A;
+    --brand-green-soft:#E8F8EE;
+    --ink:#1B1F23;
+    --ink-soft:#3A4046;
+    --ink-mute:#6B7280;
+    --line:#E5E7EB;
+    --bg:#FFFFFF;
+    --bg-soft:#F7F9FA;
+    --warn:#FF6B35;
+    --info:#2D7FF9;
+    --gold:#F5B400;
+    --shadow:0 10px 40px rgba(0,0,0,.08);
+    --shadow-lg:0 20px 60px rgba(0,0,0,.12);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:#0E1116;color:var(--ink);font-family:'Pretendard','Apple SD Gothic Neo','Malgun Gothic',sans-serif;-webkit-font-smoothing:antialiased;overflow:hidden}
+  button{font-family:inherit}
+
+  /* ====== Stage ====== */
+  .stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;perspective:1600px}
+  .deck{position:relative;width:min(1520px,98vw);aspect-ratio:16/9;max-height:94vh;background:var(--bg);border-radius:22px;box-shadow:var(--shadow-lg);overflow:hidden}
+  .slide{position:absolute;inset:0;padding:60px 84px 92px;display:flex;flex-direction:column;opacity:0;transform:translateX(40px);transition:opacity .5s ease,transform .5s ease;pointer-events:none;overflow:hidden}
+  .slide.active{opacity:1;transform:translateX(0);pointer-events:auto}
+  .slide.prev{transform:translateX(-40px)}
+
+  /* ====== Common ====== */
+  .eyebrow{display:inline-flex;align-items:center;gap:10px;color:var(--brand-green-dark);font-weight:700;font-size:15px;letter-spacing:.04em;margin-bottom:10px}
+  .eyebrow::before{content:"";width:20px;height:3px;background:var(--brand-green);border-radius:2px}
+  h1.title{font-size:56px;font-weight:800;line-height:1.18;letter-spacing:-.02em}
+  h2.title{font-size:44px;font-weight:800;line-height:1.22;letter-spacing:-.02em;margin-bottom:8px;word-break:keep-all}
+  h3{font-size:24px;font-weight:700;letter-spacing:-.01em}
+  .subtitle{font-size:21px;color:var(--ink-mute);margin-top:14px;line-height:1.5;word-break:keep-all}
+  .muted{color:var(--ink-mute)}
+  .pill{display:inline-block;padding:7px 14px;border-radius:999px;background:var(--brand-green-soft);color:var(--brand-green-dark);font-size:14px;font-weight:700}
+  .kbd{display:inline-block;padding:2px 8px;border:1px solid var(--line);border-bottom-width:2px;border-radius:6px;font-size:12px;color:var(--ink-soft);background:#fff;font-family:'JetBrains Mono',Menlo,Consolas,monospace}
+
+  /* ====== Header / Footer of slide ====== */
+  .slide-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-shrink:0}
+  .brand{display:flex;align-items:center;gap:12px;font-weight:800;color:var(--brand-green-dark);font-size:20px}
+  .brand .dot{width:16px;height:16px;background:var(--brand-green);border-radius:4px;box-shadow:0 0 0 3px rgba(3,199,90,.18)}
+  .slide-foot{position:absolute;left:84px;right:84px;bottom:30px;display:flex;justify-content:space-between;align-items:center;color:var(--ink-mute);font-size:14px;pointer-events:none}
+  .progress-bar{position:absolute;left:0;bottom:0;height:4px;background:var(--brand-green);transition:width .5s ease}
+
+  /* ====== Cover ====== */
+  .cover{background:linear-gradient(135deg,#03C75A 0%,#02A34A 60%,#017a37 100%);color:#fff;justify-content:flex-end;padding:90px;padding-bottom:100px}
+  .cover .eyebrow{color:#D6FBE4;font-size:15px}
+  .cover .eyebrow::before{background:#fff}
+  .cover h1{font-size:80px;font-weight:900;line-height:1.05;letter-spacing:-.03em;word-break:keep-all}
+  .cover .subtitle{color:#E7FBEE;font-size:26px;margin-top:24px}
+  .cover .meta{margin-top:32px;display:flex;gap:24px;font-size:15px;color:#E7FBEE;flex-wrap:wrap}
+  .cover-orbs{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+  .cover-orbs span{position:absolute;border-radius:50%;background:rgba(255,255,255,.08);filter:blur(1px);animation:float 9s ease-in-out infinite}
+  .cover-orbs span:nth-child(1){width:300px;height:300px;top:-80px;right:-60px;animation-delay:-2s}
+  .cover-orbs span:nth-child(2){width:180px;height:180px;top:120px;right:280px;animation-delay:-5s}
+  .cover-orbs span:nth-child(3){width:120px;height:120px;bottom:80px;right:-30px;animation-delay:-1s}
+  .cover-orbs span:nth-child(4){width:80px;height:80px;bottom:200px;right:380px;animation-delay:-3s}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-22px)}}
+
+  /* ====== Section divider ====== */
+  .section-divider{background:linear-gradient(135deg,#0E1116,#1B1F23);color:#fff;justify-content:center;align-items:flex-start;padding:60px 96px 92px}
+  .section-divider .num{font-size:200px;font-weight:900;color:transparent;-webkit-text-stroke:2px var(--brand-green);line-height:.9;margin-bottom:8px}
+  .section-divider h2{font-size:70px;font-weight:900;letter-spacing:-.02em}
+  .section-divider .subtitle{color:#A8B0BA;font-size:24px;margin-top:18px}
+
+  /* ====== TOC ====== */
+  .toc-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:20px}
+  .toc-card{display:flex;gap:18px;padding:22px 24px;border:1px solid var(--line);border-radius:16px;transition:all .25s ease;cursor:pointer;background:#fff}
+  .toc-card:hover{border-color:var(--brand-green);transform:translateY(-2px);box-shadow:var(--shadow)}
+  .toc-card .n{flex:0 0 48px;height:48px;border-radius:12px;background:var(--brand-green-soft);color:var(--brand-green-dark);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px}
+  .toc-card .t{font-weight:700;font-size:19px;word-break:keep-all}
+  .toc-card .d{font-size:15px;color:var(--ink-mute);margin-top:4px;word-break:keep-all}
+
+  /* ====== Two col ====== */
+  .two-col{display:grid;grid-template-columns:1.05fr .95fr;gap:36px;flex:1;align-items:center;min-height:0}
+  .stack{display:flex;flex-direction:column;gap:18px}
+  .stack li{display:flex;gap:14px;align-items:flex-start;font-size:18px;line-height:1.6;color:var(--ink-soft);word-break:keep-all}
+  .stack li::before{content:"";flex:0 0 9px;width:9px;height:9px;border-radius:50%;background:var(--brand-green);margin-top:10px}
+  .card{background:var(--bg-soft);border:1px solid var(--line);border-radius:18px;padding:22px}
+  .card.green{background:var(--brand-green-soft);border-color:rgba(3,199,90,.25)}
+
+  /* ====== Coding mapping (real → data) ====== */
+  .map-wrap{display:grid;grid-template-columns:1fr auto 1fr;gap:24px;align-items:center}
+  .map-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px 24px;box-shadow:var(--shadow)}
+  .map-card h4{font-size:15px;color:var(--ink-mute);margin-bottom:12px;font-weight:700}
+  .map-card .row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px dashed var(--line);font-size:16px}
+  .map-card .row:last-child{border-bottom:0}
+  .map-card .row b{color:var(--brand-green-dark)}
+  .map-arrow{font-size:42px;color:var(--brand-green);font-weight:800;animation:nudge 1.6s ease-in-out infinite}
+  @keyframes nudge{0%,100%{transform:translateX(0)}50%{transform:translateX(8px)}}
+  .code-block{font-family:'JetBrains Mono',Menlo,Consolas,monospace;background:#0E1116;color:#E7E9EE;padding:18px 20px;border-radius:12px;font-size:14px;line-height:1.7;overflow:auto;margin:0}
+  .code-block .k{color:#FF7AB6}.code-block .s{color:#9BE08F}.code-block .n{color:#7CC4FF}.code-block .c{color:#7A828F}
+
+  /* ====== Concept cards (var/func/class/obj) ====== */
+  .concept-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:18px;flex-shrink:0}
+  .concept{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;cursor:pointer;transition:all .25s;position:relative;overflow:hidden}
+  .concept:hover,.concept.active{border-color:var(--brand-green);transform:translateY(-3px);box-shadow:var(--shadow)}
+  .concept .icon{width:46px;height:46px;border-radius:12px;background:var(--brand-green-soft);display:flex;align-items:center;justify-content:center;color:var(--brand-green-dark);font-weight:800;font-size:22px;margin-bottom:12px}
+  .concept h4{font-size:19px;font-weight:800}
+  .concept p{font-size:14.5px;color:var(--ink-mute);margin-top:6px;line-height:1.5}
+  .concept-detail{margin-top:18px;flex:1;display:grid;grid-template-columns:1.15fr .85fr;gap:18px;min-height:0}
+  .concept-detail b{color:var(--brand-green-dark)}
+  .cd-left{background:var(--bg-soft);border:1px solid var(--line);border-radius:16px;padding:20px 22px;display:flex;flex-direction:column;gap:14px;min-height:0}
+  .cd-desc{font-size:16px;line-height:1.6;color:var(--ink-soft);word-break:keep-all}
+  .cd-code{flex:1;background:#0E1116;color:#E7E9EE;padding:18px 20px;border-radius:12px;font-family:'JetBrains Mono',Menlo,Consolas,monospace;font-size:13.5px;line-height:1.7;overflow:auto;white-space:pre;margin:0;min-height:0}
+  .cd-code .k{color:#FF7AB6}
+  .cd-code .t{color:#7CC4FF}
+  .cd-code .s{color:#9BE08F}
+  .cd-code .n{color:#FFD27A}
+  .cd-code .c{color:#7A828F;font-style:italic}
+  .cd-code .fn{color:#C792EA}
+  .cd-code .prop{color:#82E0FF}
+  .cd-right{background:#fff;border:1px solid var(--line);border-radius:16px;padding:30px 22px 22px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;min-height:0}
+  .anim-title{position:absolute;top:14px;left:18px;right:18px;font-size:12px;color:var(--ink-mute);font-weight:700;letter-spacing:.04em}
+
+  /* concept · variable */
+  .var-anim{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%}
+  .var-anim .var-tag{background:var(--brand-green-dark);color:#fff;padding:5px 14px;border-radius:999px;font-size:13px;font-weight:700;font-family:'JetBrains Mono',Menlo,Consolas,monospace}
+  .var-anim .var-bucket{width:200px;height:120px;border:3px solid var(--brand-green);border-radius:14px;background:var(--brand-green-soft);position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:inset 0 4px 12px rgba(0,0,0,.04)}
+  .var-anim .vv{position:absolute;font-size:46px;font-weight:800;color:var(--brand-green-dark);font-family:'JetBrains Mono',Menlo,Consolas,monospace;letter-spacing:-.02em}
+  .var-anim .vv:nth-child(1){animation:vvA 4s infinite}
+  .var-anim .vv:nth-child(2){animation:vvB 4s infinite}
+  @keyframes vvA{0%,40%{opacity:1;transform:translateY(0)}50%,90%{opacity:0;transform:translateY(-46px)}100%{opacity:1;transform:translateY(0)}}
+  @keyframes vvB{0%,45%{opacity:0;transform:translateY(46px)}55%,95%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(46px)}}
+  .var-anim .var-hint{font-size:13px;color:var(--ink-mute);text-align:center}
+
+  /* concept · function */
+  .fn-anim{width:100%;padding:0 4px}
+  .fn-row{display:flex;align-items:center;justify-content:space-between;gap:6px;width:100%}
+  .fn-input{display:flex;flex-direction:column;gap:6px}
+  .fn-input span{background:#fff;border:2px solid var(--brand-green);color:var(--brand-green-dark);padding:5px 10px;border-radius:8px;font-size:12.5px;font-weight:800;font-family:'JetBrains Mono',Menlo,Consolas,monospace;animation:fnIn 3s infinite}
+  .fn-input span:nth-child(2){animation-delay:.3s}
+  @keyframes fnIn{0%{transform:translateX(-12px);opacity:0}25%,100%{transform:translateX(0);opacity:1}}
+  .fn-flow{flex:1;height:2px;background:linear-gradient(90deg,transparent 0%,var(--brand-green) 50%,transparent 100%);background-size:200% 100%;animation:fnFlow 1.4s linear infinite;min-width:24px}
+  @keyframes fnFlow{0%{background-position:200% 0}100%{background-position:-200% 0}}
+  .fn-box{background:var(--brand-green);color:#fff;padding:12px 14px;border-radius:12px;font-size:13px;font-weight:800;font-family:'JetBrains Mono',Menlo,Consolas,monospace;box-shadow:0 6px 20px rgba(3,199,90,.3);animation:fnPulse 1.5s ease-in-out infinite;white-space:nowrap}
+  @keyframes fnPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+  .fn-output{background:#FFF6E5;border:2px solid #F5B400;color:#A57400;padding:7px 14px;border-radius:10px;font-size:18px;font-weight:800;font-family:'JetBrains Mono',Menlo,Consolas,monospace;animation:fnPop 3s infinite}
+  @keyframes fnPop{0%,40%{transform:scale(.6);opacity:0}55%,100%{transform:scale(1);opacity:1}}
+
+  /* concept · class */
+  .class-anim{display:grid;grid-template-columns:auto auto 1fr;gap:14px;align-items:center;width:100%}
+  .blueprint{background:#fff;border:2px dashed var(--brand-green);border-radius:12px;padding:10px 12px;min-width:130px;font-family:'JetBrains Mono',Menlo,Consolas,monospace;font-size:12px}
+  .bp-h{font-weight:800;color:var(--brand-green-dark);margin-bottom:6px;font-size:13px}
+  .bp-row{padding:4px 0;color:var(--ink-soft);border-top:1px dashed var(--line)}
+  .bp-row.m{color:var(--brand-green-dark);font-weight:700}
+  .bp-stamp{font-size:13px;font-weight:800;color:var(--brand-green-dark);background:var(--brand-green-soft);padding:6px 12px;border-radius:999px;font-family:'JetBrains Mono',Menlo,Consolas,monospace;text-align:center;animation:stamp 2s ease-in-out infinite}
+  @keyframes stamp{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+  .instances{display:flex;flex-direction:column;gap:10px}
+  .inst{background:var(--brand-green-soft);border:2px solid var(--brand-green);border-radius:10px;padding:8px 12px;font-weight:800;color:var(--brand-green-dark);font-size:13px;font-family:'JetBrains Mono',Menlo,Consolas,monospace}
+  .inst small{display:block;font-weight:500;color:var(--ink-soft);font-size:11px;margin-top:2px}
+  .inst.i1{animation:instIn 4s infinite}
+  .inst.i2{animation:instIn 4s infinite;animation-delay:.7s}
+  @keyframes instIn{0%{opacity:0;transform:translateX(-22px) scale(.85)}25%,100%{opacity:1;transform:translateX(0) scale(1)}}
+
+  /* concept · object */
+  .obj-anim{display:flex;align-items:center;gap:18px;width:100%;justify-content:center}
+  .obj-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px;font-family:'JetBrains Mono',Menlo,Consolas,monospace;font-size:12.5px;min-width:170px;box-shadow:var(--shadow)}
+  .oc-h{font-weight:800;color:var(--ink);margin-bottom:6px;font-size:13.5px}
+  .oc-row{padding:4px 0;color:var(--ink-soft);font-size:12px;border-top:1px dashed var(--line)}
+  .oc-row b{color:var(--brand-green-dark)}
+  .oc-method{margin-top:8px;padding:7px 10px;background:var(--brand-green);color:#fff;border-radius:8px;font-weight:800;font-size:13px;text-align:center;animation:objCall 2.4s ease-in-out infinite}
+  @keyframes objCall{0%,40%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(3,199,90,.6)}20%{transform:scale(1.04);box-shadow:0 0 0 12px rgba(3,199,90,0)}}
+  .obj-bubble{position:relative;background:#FFF6E5;border:2px solid #F5B400;color:#7a5c00;padding:14px 18px;border-radius:14px;font-size:14px;font-weight:700;line-height:1.4;animation:bubbleIn 2.4s ease-in-out infinite;text-align:center}
+  .obj-bubble::before{content:"";position:absolute;left:-10px;top:50%;width:0;height:0;border:8px solid transparent;border-right-color:#F5B400;transform:translateY(-50%)}
+  @keyframes bubbleIn{0%,30%{opacity:0;transform:translateX(-12px) scale(.7)}50%,80%{opacity:1;transform:translateX(0) scale(1)}100%{opacity:0;transform:translateX(-12px) scale(.7)}}
+
+  /* ====== Web programming benefit visualization ====== */
+  .web-compare{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:18px}
+  .web-card{border-radius:16px;padding:24px 26px;border:1px solid var(--line);background:#fff;position:relative}
+  .web-card.bad{background:#FFF6F2;border-color:#FFD2BD}
+  .web-card.good{background:var(--brand-green-soft);border-color:rgba(3,199,90,.25)}
+  .web-card .lbl{position:absolute;top:-13px;left:20px;padding:5px 12px;border-radius:999px;font-size:13px;font-weight:800}
+  .web-card.bad .lbl{background:var(--warn);color:#fff}
+  .web-card.good .lbl{background:var(--brand-green);color:#fff}
+  .web-card h4{font-size:20px;margin-bottom:10px}
+  .web-card ul{list-style:none;padding:0;margin:0}
+  .web-card li{font-size:16px;color:var(--ink-soft);padding:9px 0;border-bottom:1px dashed rgba(0,0,0,.08);word-break:keep-all}
+  .web-card li:last-child{border-bottom:0}
+  .web-card li::before{content:"•  ";color:inherit;font-weight:700}
+
+  /* ====== Timeline (Paradigm Evolution) ====== */
+  .timeline{display:flex;align-items:stretch;gap:0;margin-top:24px;position:relative}
+  .tl-step{flex:1;padding:24px 22px;border-radius:14px;background:#fff;border:1px solid var(--line);position:relative;transition:all .3s}
+  .tl-step + .tl-step{margin-left:-1px}
+  .tl-step .yr{font-size:13px;color:var(--ink-mute);font-weight:700;letter-spacing:.05em}
+  .tl-step h4{font-size:19px;margin-top:6px;margin-bottom:8px;font-weight:800}
+  .tl-step p{font-size:15px;color:var(--ink-soft);line-height:1.6;word-break:keep-all}
+  .tl-step.active{background:var(--brand-green-soft);border-color:var(--brand-green);transform:translateY(-4px);box-shadow:var(--shadow);z-index:2}
+  .tl-arrow{align-self:center;color:var(--brand-green);font-size:26px;font-weight:800;padding:0 8px}
+
+  /* ====== Paradigm detail blocks ====== */
+  .para-hero{display:grid;grid-template-columns:1fr 1fr;gap:32px;flex:1;margin-top:10px;min-height:0}
+  .para-left h3{font-size:14px;color:var(--ink-mute);font-weight:700;letter-spacing:.08em;margin-bottom:8px;text-transform:uppercase}
+  .para-left .big{font-size:32px;font-weight:800;letter-spacing:-.01em;line-height:1.25;word-break:keep-all}
+  .para-left .desc{margin-top:14px;font-size:17px;color:var(--ink-soft);line-height:1.65;word-break:keep-all}
+  .para-feat{margin-top:20px;display:flex;flex-direction:column;gap:11px}
+  .para-feat .f{display:flex;gap:10px;align-items:flex-start;font-size:16px;color:var(--ink-soft)}
+  .para-feat .f::before{content:"✓";color:var(--brand-green-dark);font-weight:900}
+  .para-right{background:#0E1116;border-radius:16px;padding:24px;color:#E7E9EE;display:flex;flex-direction:column;gap:8px;overflow:hidden;min-height:0}
+  .para-right .term-head{display:flex;gap:6px;align-items:center;color:#7A828F;font-size:13px;margin-bottom:10px}
+  .para-right .term-head .d{width:10px;height:10px;border-radius:50%}
+  .para-right .term-head .d:nth-child(1){background:#FF6058}
+  .para-right .term-head .d:nth-child(2){background:#FFBE2E}
+  .para-right .term-head .d:nth-child(3){background:#28CA42}
+  .para-right .term-head span{margin-left:8px}
+  .term-line{font-family:'JetBrains Mono',Menlo,Consolas,monospace;font-size:14px;line-height:1.7}
+  .term-line .u{color:#9BE08F}
+  .term-line .a{color:#7CC4FF}
+  .term-line .c{color:#7A828F}
+
+  /* ====== Compare slider ====== */
+  .compare-wrap{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:18px;flex:1;min-height:0}
+  .compare{border-radius:16px;border:1px solid var(--line);padding:24px 26px;background:#fff;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+  .compare.before{background:#FFF6F2;border-color:#FFD2BD}
+  .compare.after{background:var(--brand-green-soft);border-color:rgba(3,199,90,.25)}
+  .compare .badge{display:inline-block;padding:4px 11px;border-radius:999px;font-size:13px;font-weight:800;margin-bottom:10px;width:max-content}
+  .compare.before .badge{background:var(--warn);color:#fff}
+  .compare.after .badge{background:var(--brand-green);color:#fff}
+  .compare h4{font-size:19px;margin-bottom:10px}
+  .compare .body{flex:1;font-size:16px;color:var(--ink-soft);line-height:1.65;overflow:auto;word-break:keep-all}
+  .metric-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:18px;flex-shrink:0}
+  .metric{padding:16px 18px;border-radius:12px;background:#fff;border:1px solid var(--line)}
+  .metric .lbl{font-size:13px;color:var(--ink-mute);font-weight:700}
+  .metric .v{font-size:26px;font-weight:800;color:var(--brand-green-dark);margin-top:4px;line-height:1.1}
+  .metric .delta{font-size:13px;color:var(--brand-green-dark);font-weight:700;margin-top:4px}
+
+  /* ====== Why engineering ====== */
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:24px}
+  .why{padding:24px;background:#fff;border:1px solid var(--line);border-radius:16px;transition:all .25s}
+  .why:hover{transform:translateY(-3px);box-shadow:var(--shadow);border-color:var(--brand-green)}
+  .why .ic{width:50px;height:50px;border-radius:12px;background:var(--brand-green-soft);color:var(--brand-green-dark);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;margin-bottom:14px}
+  .why h4{font-size:19px;font-weight:800;margin-bottom:6px}
+  .why p{font-size:15px;color:var(--ink-soft);line-height:1.6;word-break:keep-all}
+
+  /* ====== Closing ====== */
+  .closing{background:linear-gradient(135deg,#0E1116,#1B1F23);color:#fff;justify-content:center;align-items:center;text-align:center;padding:60px 96px}
+  .closing h1{font-size:62px;font-weight:900;letter-spacing:-.02em;line-height:1.18;word-break:keep-all}
+  .closing .subtitle{color:#A8B0BA;font-size:22px;margin-top:18px}
+  .closing .pill{background:rgba(3,199,90,.18);color:#7BE5A6;margin-top:28px;font-size:16px;padding:8px 16px}
+
+  /* ====== Navigation ====== */
+  .nav{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.96);border:1px solid var(--line);border-radius:999px;padding:10px 16px;box-shadow:var(--shadow);z-index:30}
+  .nav button{border:0;background:transparent;width:40px;height:40px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--ink-soft);transition:all .2s;font-size:20px}
+  .nav button:hover{background:var(--brand-green-soft);color:var(--brand-green-dark)}
+  .nav .pos{font-weight:800;color:var(--ink);min-width:70px;text-align:center;font-size:15px}
+  .nav .pos b{color:var(--brand-green-dark)}
+  .help{position:fixed;top:18px;right:22px;color:#A8B0BA;font-size:13px;z-index:30;display:flex;gap:8px;align-items:center}
+  .help .kbd{background:rgba(255,255,255,.06);color:#D7DBE0;border-color:#2A2F36}
+
+  /* ====== Animated reveal ====== */
+  .reveal{opacity:0;transform:translateY(14px);transition:all .6s ease}
+  .slide.active .reveal{opacity:1;transform:none}
+  .slide.active .reveal:nth-child(2){transition-delay:.08s}
+  .slide.active .reveal:nth-child(3){transition-delay:.16s}
+  .slide.active .reveal:nth-child(4){transition-delay:.24s}
+  .slide.active .reveal:nth-child(5){transition-delay:.32s}
+  .slide.active .reveal:nth-child(6){transition-delay:.40s}
+
+  /* misc */
+  .quote{font-size:21px;line-height:1.5;color:var(--ink);font-weight:600;letter-spacing:-.01em;border-left:4px solid var(--brand-green);padding-left:18px;word-break:keep-all}
+  .small{font-size:14px;color:var(--ink-mute)}
+  .arrow-line{height:2px;background:linear-gradient(90deg,transparent,var(--brand-green),transparent);margin:8px 0}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--ink-mute);margin-top:8px}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:middle}
+
+  /* ====== Slide-specific: harness diagram ====== */
+  .harness{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:18px}
+  .h-layer{background:#fff;border:1px dashed var(--line);border-radius:14px;padding:20px 18px;text-align:center}
+  .h-layer .lbl{font-size:12px;color:var(--ink-mute);font-weight:700;letter-spacing:.06em}
+  .h-layer .name{font-size:18px;font-weight:800;margin:5px 0}
+  .h-layer .ex{font-size:14px;color:var(--ink-soft);line-height:1.5;word-break:keep-all}
+
+  /* ====== Slide-specific: agent loop ====== */
+  .agent-loop{position:relative;height:340px;margin-top:10px}
+  .agent-node{position:absolute;background:#fff;border:1px solid var(--line);border-radius:12px;padding:11px 16px;font-size:15px;font-weight:700;box-shadow:var(--shadow);min-width:140px;text-align:center}
+  .agent-node small{display:block;font-weight:500;color:var(--ink-mute);font-size:12.5px;margin-top:3px}
+  .agent-node.center{background:var(--brand-green);color:#fff;border-color:var(--brand-green)}
+  .agent-node.center small{color:#D6FBE4}
+  svg.loop-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+
+  /* ===== Multi-agent team diagram ===== */
+  .team-flow{display:flex;flex-direction:column;align-items:center;gap:10px;padding:8px 0;flex:1;min-height:0;justify-content:center}
+  .team-pm{padding:14px 28px;background:linear-gradient(135deg,var(--brand-green),var(--brand-green-dark));color:#fff;border-radius:14px;font-weight:800;font-size:17px;box-shadow:0 6px 16px rgba(2,163,74,.25);text-align:center;min-width:240px}
+  .team-pm small{display:block;font-weight:500;font-size:12.5px;opacity:.92;margin-top:3px;letter-spacing:.02em}
+  .team-arrow{font-size:22px;color:var(--brand-green);font-weight:900;line-height:1}
+  .team-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%}
+  .team-agent{padding:12px 12px;background:#fff;border:2px solid var(--brand-green-soft);border-radius:12px;text-align:center;font-size:13.5px;font-weight:700;color:var(--ink);display:flex;flex-direction:column;gap:3px;min-height:0}
+  .team-agent .role{font-size:11.5px;color:var(--brand-green-dark);font-weight:800;letter-spacing:.06em}
+  .team-agent small{color:var(--ink-mute);font-weight:500;font-size:11.5px;line-height:1.4}
+  .team-merge{font-size:13px;color:var(--ink-soft);text-align:center;font-weight:600;padding:6px 12px;background:var(--bg-soft);border-radius:8px}
+
+  .inner-loop{display:flex;flex-direction:column;gap:8px;padding:14px;background:#FBFFFD;border:2px dashed var(--brand-green-soft);border-radius:14px}
+  .inner-loop .il-step{display:flex;align-items:center;gap:10px;padding:9px 12px;background:#fff;border-radius:10px;border-left:3px solid var(--brand-green);font-size:13.5px;font-weight:700;color:var(--ink)}
+  .inner-loop .il-step .n{width:24px;height:24px;border-radius:50%;background:var(--brand-green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;flex-shrink:0}
+  .inner-loop .il-step small{font-weight:500;color:var(--ink-mute);font-size:12px;margin-left:4px}
+  .inner-loop .il-arrow{font-size:14px;color:var(--brand-green);font-weight:900;text-align:center;line-height:0.7}
+  .inner-loop .il-back{font-size:12px;color:var(--brand-green-dark);text-align:center;font-weight:700;padding:4px;border-top:1px dashed var(--brand-green-soft);margin-top:4px}
+
+  /* ===== Team flow animation (agentic engineering) ===== */
+  .team-flow.animated .team-pm{animation:pmCycle 10s ease-in-out infinite}
+  .team-flow.animated .team-arrow.split{animation:splitArrowCycle 10s ease-in-out infinite}
+  .team-flow.animated .team-arrow.merge{animation:mergeArrowCycle 10s ease-in-out infinite}
+  .team-flow.animated .team-agent{animation:agentCycle 10s ease-in-out infinite}
+  .team-flow.animated .team-merge{animation:mergeBoxCycle 10s ease-in-out infinite}
+
+  @keyframes pmCycle{
+    0%,15%,75%,100%{box-shadow:0 6px 16px rgba(2,163,74,.25);transform:scale(1)}
+    4%,11%,80%,93%{box-shadow:0 0 0 8px rgba(2,163,74,.32),0 10px 26px rgba(2,163,74,.55);transform:scale(1.05)}
+    35%,55%{box-shadow:0 4px 10px rgba(0,0,0,.06);transform:scale(.98);filter:saturate(.6)}
+  }
+  @keyframes splitArrowCycle{
+    0%,12%,28%,100%{opacity:.35;transform:scale(1);color:var(--brand-green)}
+    16%,25%{opacity:1;transform:scale(1.25) translateY(3px);color:var(--brand-green-dark);text-shadow:0 0 12px rgba(2,163,74,.6)}
+  }
+  @keyframes mergeArrowCycle{
+    0%,60%,82%,100%{opacity:.35;transform:scale(1);color:var(--brand-green)}
+    64%,78%{opacity:1;transform:scale(1.25) translateY(-3px);color:var(--brand-green-dark);text-shadow:0 0 12px rgba(2,163,74,.6)}
+  }
+  @keyframes agentCycle{
+    0%,25%,65%,100%{border-color:var(--brand-green-soft);transform:scale(1);box-shadow:none;background:#fff}
+    30%,60%{border-color:var(--brand-green);transform:scale(1.04);box-shadow:0 8px 22px rgba(2,163,74,.22);background:#FBFFFD}
+  }
+  @keyframes mergeBoxCycle{
+    0%,78%,100%{background:var(--bg-soft);color:var(--ink-soft);box-shadow:none}
+    85%,96%{background:var(--brand-green);color:#fff;box-shadow:0 8px 20px rgba(2,163,74,.35)}
+  }
+
+  /* working dots inside each agent */
+  .team-agent .work-dots{display:flex;gap:4px;justify-content:center;margin-top:6px;height:8px;align-items:center;opacity:0}
+  .team-flow.animated .team-agent .work-dots{animation:dotsVisible 10s ease-in-out infinite}
+  .team-agent .work-dots span{width:6px;height:6px;border-radius:50%;background:var(--brand-green);animation:dotBounce .55s ease-in-out infinite alternate}
+  .team-agent .work-dots span:nth-child(2){animation-delay:.18s}
+  .team-agent .work-dots span:nth-child(3){animation-delay:.36s}
+  @keyframes dotsVisible{
+    0%,28%,62%,100%{opacity:0}
+    32%,58%{opacity:1}
+  }
+  @keyframes dotBounce{
+    from{transform:translateY(0);background:var(--brand-green)}
+    to{transform:translateY(-4px);background:var(--brand-green-dark)}
+  }
+
+  /* stage label */
+  .stage-strip{position:relative;height:36px;margin-top:10px;width:100%;flex-shrink:0}
+  .stage-strip .stage-pill{position:absolute;left:0;right:0;top:0;bottom:0;display:flex;align-items:center;justify-content:center;font-size:13.5px;font-weight:800;color:var(--brand-green-dark);background:linear-gradient(90deg,#E8F8EE,#F2FBF6,#E8F8EE);border-radius:999px;padding:6px 18px;letter-spacing:.02em;opacity:0;border:1.5px solid var(--brand-green-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-sizing:border-box}
+  .stage-strip .stage-pill .num{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background:var(--brand-green);color:#fff;border-radius:50%;font-size:12px;margin-right:8px;font-weight:900}
+  .team-flow.animated .stage-strip .s1{animation:stage1Show 10s ease-in-out infinite}
+  .team-flow.animated .stage-strip .s2{animation:stage2Show 10s ease-in-out infinite}
+  .team-flow.animated .stage-strip .s3{animation:stage3Show 10s ease-in-out infinite}
+  @keyframes stage1Show{0%,22%,100%{opacity:1}26%,99%{opacity:0}}
+  @keyframes stage2Show{0%,27%,62%,100%{opacity:0}31%,58%{opacity:1}}
+  @keyframes stage3Show{0%,65%,100%{opacity:0}69%,95%{opacity:1}}
+
+  .team-flow.animated{position:relative}
+
+  /* ====== Slide-specific: prompt eng visual ====== */
+  .prompt-demo{background:#0E1116;border-radius:14px;padding:18px;color:#E7E9EE;font-family:'JetBrains Mono',Menlo,Consolas,monospace;font-size:13px;line-height:1.7;height:100%}
+  .prompt-demo .role{color:#7CC4FF;font-weight:700}
+  .prompt-demo .you{color:#9BE08F}
+  .prompt-demo .ai{color:#FFD27A}
+
+  /* ===== 학습 목표 ===== */
+  .objectives{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:20px}
+  .obj-item{display:flex;gap:14px;align-items:flex-start;padding:18px 22px;background:#fff;border:1px solid var(--line);border-radius:14px;transition:all .25s}
+  .obj-item:hover{border-color:var(--brand-green);transform:translateY(-2px);box-shadow:var(--shadow)}
+  .obj-item .check{flex:0 0 32px;width:32px;height:32px;border-radius:50%;background:var(--brand-green-soft);color:var(--brand-green-dark);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px}
+  .obj-item .ot{font-weight:700;font-size:17px;color:var(--ink);word-break:keep-all}
+  .obj-item .od{font-size:13.5px;color:var(--ink-mute);margin-top:3px;word-break:keep-all;line-height:1.5}
+
+  /* ===== 데이터 타입 ===== */
+  .dt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px}
+  .dt-card{padding:18px 20px;background:#fff;border:1px solid var(--line);border-radius:14px;transition:all .25s}
+  .dt-card:hover{transform:translateY(-2px);box-shadow:var(--shadow);border-color:var(--brand-green)}
+  .dt-card .ic{font-size:28px;margin-bottom:6px}
+  .dt-card .nm{font-weight:800;font-size:18px;color:var(--ink)}
+  .dt-card .nm small{font-weight:500;color:var(--ink-mute);font-size:12px;margin-left:8px}
+  .dt-card .ex{margin-top:8px;font-family:'JetBrains Mono',Menlo,Consolas,monospace;font-size:13px;color:var(--brand-green-dark);background:var(--brand-green-soft);padding:6px 10px;border-radius:8px;display:inline-block}
+  .dt-card .me{margin-top:8px;font-size:13.5px;color:var(--ink-soft);word-break:keep-all;line-height:1.5}
+
+  /* ===== Quiz ===== */
+  .quiz{margin-top:18px;display:flex;flex-direction:column;gap:16px;flex:1;min-height:0}
+  .quiz-q{padding:26px 30px;background:#0E1116;color:#fff;border-radius:14px;font-size:21px;line-height:1.75;white-space:pre-wrap;font-family:'JetBrains Mono',Menlo,Consolas,monospace;border-left:6px solid var(--brand-green);font-weight:500}
+  .quiz-q .lbl{display:block;color:#FFD27A;font-size:14px;letter-spacing:.08em;margin-bottom:14px;font-family:'Pretendard',sans-serif;font-weight:800}
+  .quiz-opts{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .quiz-opt{padding:18px 20px;background:#fff;border:2px solid var(--line);border-radius:12px;cursor:pointer;transition:all .2s;font-size:17px;text-align:left;font-weight:700;color:var(--ink);font-family:inherit;line-height:1.55;word-break:keep-all;display:flex;align-items:flex-start;gap:12px}
+  .quiz-opt:hover{border-color:var(--brand-green);transform:translateY(-1px)}
+  .quiz-opt.correct{background:var(--brand-green-soft);border-color:var(--brand-green);color:var(--brand-green-dark)}
+  .quiz-opt.wrong{background:#FFF6F2;border-color:#FF6B35;color:#A24410}
+  .quiz-opt .mk{font-weight:900;color:#fff;background:var(--brand-green-dark);min-width:30px;height:30px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;margin-top:1px}
+  .quiz-opt.correct .mk{background:var(--brand-green)}
+  .quiz-opt.wrong .mk{background:#FF6B35;color:#fff}
+  .quiz-explain{padding:18px 22px;background:var(--bg-soft);border-radius:12px;font-size:16px;color:var(--ink-soft);line-height:1.7;border-left:5px solid var(--brand-green);display:none;word-break:keep-all}
+  .quiz-explain.show{display:block}
+  .quiz-explain b{color:var(--brand-green-dark)}
+
+  /* ===== Timer ===== */
+  .timer-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px}
+  .timer-display{font-size:200px;font-weight:900;color:#fff;font-family:'JetBrains Mono',Menlo,Consolas,monospace;letter-spacing:-.04em;line-height:1;text-shadow:0 6px 40px rgba(3,199,90,.4)}
+  .timer-display.warning{color:#FFD27A}
+  .timer-display.done{color:#FF6B35}
+  .timer-actions{display:flex;gap:12px}
+  .timer-btn{padding:11px 22px;border-radius:999px;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.18);font-weight:700;cursor:pointer;font-size:14px;font-family:inherit;transition:all .2s}
+  .timer-btn:hover{background:rgba(3,199,90,.3);border-color:var(--brand-green)}
+  .timer-preview{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:10px}
+  .timer-preview .chip{padding:8px 16px;border-radius:999px;background:rgba(3,199,90,.18);color:#7BE5A6;font-size:14px;font-weight:700}
+  .timer-label{color:#A8B0BA;font-size:18px;font-weight:600;letter-spacing:.05em}
+
+  /* ===== Token visualization ===== */
+  .token-vis{margin-top:18px;display:flex;flex-direction:column;gap:14px}
+  .token-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+  .token-row .lab{flex:0 0 100px;font-size:13px;color:var(--ink-mute);font-weight:700}
+  .token{padding:6px 11px;border-radius:7px;background:var(--brand-green-soft);color:var(--brand-green-dark);font-family:'JetBrains Mono',Menlo,Consolas,monospace;font-size:14px;font-weight:700}
+  .token.alt{background:#FFF6E5;color:#A57400}
+  .token.idx{background:#E5F1FF;color:#1A5FC4}
+
+  /* ===== HTTP method cards ===== */
+  .http-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px}
+  .http-card{padding:16px;border-radius:12px;text-align:center;color:#fff;font-weight:800;font-family:'JetBrains Mono',Menlo,Consolas,monospace}
+  .http-card .m{font-size:20px;letter-spacing:.05em}
+  .http-card .d{font-weight:500;font-size:12.5px;margin-top:6px;font-family:'Pretendard',sans-serif;opacity:.95}
+  .http-get{background:#03C75A}.http-post{background:#2D7FF9}.http-put{background:#F5B400;color:#7a5c00}.http-delete{background:#FF6B35}
+  .http-status{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+  .http-status div{padding:10px 14px;border-radius:10px;font-family:'JetBrains Mono',Menlo,Consolas,monospace;font-weight:700;font-size:13px;text-align:center}
+  .st-ok{background:var(--brand-green-soft);color:var(--brand-green-dark)}
+  .st-warn{background:#FFF6E5;color:#A57400}
+  .st-err{background:#FFF6F2;color:#A24410}
+
+  /* ===== FAQ accordion ===== */
+  .faq{display:flex;flex-direction:column;gap:10px;margin-top:14px;flex:1;overflow:auto;min-height:0}
+  .faq-item{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .faq-q{padding:16px 20px;font-weight:700;font-size:16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;color:var(--ink);user-select:none}
+  .faq-q::after{content:"+";color:var(--brand-green-dark);font-size:24px;transition:transform .2s;font-weight:300}
+  .faq-item.open .faq-q::after{transform:rotate(45deg)}
+  .faq-a{padding:0 20px;max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s ease;font-size:14px;color:var(--ink-soft);line-height:1.6;word-break:keep-all}
+  .faq-item.open .faq-a{padding:0 20px 18px;max-height:300px}
+  .faq-a b{color:var(--brand-green-dark)}
+
+  /* ===== Roadmap ===== */
+  .roadmap{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:18px}
+  .rm-card{padding:24px;border-radius:16px;background:#fff;border:1px solid var(--line);position:relative}
+  .rm-card .stage{display:inline-block;padding:5px 12px;border-radius:999px;background:var(--brand-green-soft);color:var(--brand-green-dark);font-weight:800;font-size:12px;letter-spacing:.06em;margin-bottom:12px}
+  .rm-card h4{font-size:19px;font-weight:800;margin-bottom:12px}
+  .rm-card ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
+  .rm-card li{padding-left:22px;font-size:14px;color:var(--ink-soft);line-height:1.55;position:relative;word-break:keep-all}
+  .rm-card li::before{content:"›";position:absolute;left:6px;color:var(--brand-green);font-weight:900;font-size:16px;top:-2px}
+
+  /* ===== Bad/Good 패턴 ===== */
+  .pattern-list{display:flex;flex-direction:column;gap:14px;margin-top:14px;flex:1;min-height:0;overflow:auto}
+  .pat-row{display:grid;grid-template-columns:46px 1fr 28px 1fr;gap:14px;align-items:stretch}
+  .pat-num{width:46px;height:46px;border-radius:50%;background:var(--brand-green);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px;align-self:center;box-shadow:0 4px 10px rgba(2,163,74,.25)}
+  .pat-arrow{align-self:center;display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--brand-green);font-weight:900}
+  .pat-bad,.pat-good{padding:14px 16px;border-radius:12px;font-size:15px;line-height:1.55;word-break:keep-all;display:flex;flex-direction:column;gap:4px}
+  .pat-bad{background:#FFEDE3;border:2px solid #FF6B35;color:#3d1808}
+  .pat-good{background:#E8F8EE;border:2px solid var(--brand-green);color:#0a3d20}
+  .pat-bad b,.pat-good b{font-size:16px;color:var(--ink);font-weight:800}
+  .pat-bad .pat-q{font-size:14px;color:#7a3318;font-style:italic;margin-top:2px}
+  .pat-good .pat-q{font-size:14px;color:#155f31;font-style:italic;margin-top:2px}
+  .pat-tag{display:inline-block;padding:3px 10px;border-radius:6px;font-size:12px;font-weight:900;margin-right:8px;letter-spacing:.06em;vertical-align:middle}
+  .pat-tag.bad{background:#FF6B35;color:#fff}
+  .pat-tag.good{background:var(--brand-green);color:#fff}
+
+  /* ===== Prompt pattern detail (one slide per pattern) ===== */
+  .pp-detail{display:grid;grid-template-columns:0.85fr 1.15fr;gap:20px;margin-top:14px;flex:1;min-height:0}
+  .pp-card{background:linear-gradient(180deg,#F2FBF6 0%,#E8F8EE 100%);border:2px solid var(--brand-green-soft);border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:14px;min-height:0}
+  .pp-card .ic{font-size:64px;line-height:1}
+  .pp-card .lbl{display:inline-block;background:var(--brand-green);color:#fff;padding:4px 14px;border-radius:999px;font-size:12px;font-weight:900;letter-spacing:.08em;width:max-content}
+  .pp-card h3{font-size:30px;color:var(--brand-green-dark);font-weight:900;line-height:1.2;word-break:keep-all}
+  .pp-card .desc{font-size:15.5px;color:var(--ink-soft);line-height:1.6;word-break:keep-all}
+  .pp-card .when{margin-top:auto;padding:14px 16px;background:#fff;border-radius:12px;font-size:14px;color:var(--ink-soft);line-height:1.6;word-break:keep-all;border-left:4px solid var(--brand-green)}
+  .pp-card .when b{color:var(--brand-green-dark);font-weight:800}
+  .pp-card .effect{padding:14px 16px;background:#fff;border-radius:12px;font-size:14px;color:var(--ink-soft);line-height:1.6;word-break:keep-all;border-left:4px solid #FFB300}
+  .pp-card .effect b{color:#A57400;font-weight:800}
+
+  .pp-ex{display:flex;flex-direction:column;gap:12px;min-height:0}
+  .pp-prompt,.pp-output{padding:16px 20px;border-radius:14px;font-size:14.5px;line-height:1.7;word-break:keep-all;display:flex;flex-direction:column;gap:8px}
+  .pp-prompt{background:#1a2332;color:#e8f1f8;border-left:5px solid var(--brand-green);font-family:'JetBrains Mono','Consolas','Pretendard',monospace}
+  .pp-prompt .ttl{display:inline-flex;align-items:center;gap:8px;background:var(--brand-green);color:#fff;padding:4px 12px;border-radius:6px;font-size:12px;font-weight:900;letter-spacing:.08em;width:max-content;font-family:'Pretendard',sans-serif}
+  .pp-prompt .body{white-space:pre-wrap;color:#d8e4ee}
+  .pp-prompt .body em{color:#7dd3a1;font-style:normal;font-weight:600}
+  .pp-prompt .body .hl{color:#ffd166;font-weight:600}
+
+  .pp-output{background:#fff;border:2px solid var(--line);color:var(--ink)}
+  .pp-output .ttl{display:inline-flex;align-items:center;gap:8px;background:var(--bg-soft);color:var(--ink-soft);padding:4px 12px;border-radius:6px;font-size:12px;font-weight:900;letter-spacing:.08em;width:max-content}
+  .pp-output .body{font-size:14.5px;line-height:1.7;color:var(--ink);white-space:pre-wrap;word-break:keep-all}
+  .pp-output .body b{color:var(--brand-green-dark)}
+
+  /* ===== Tool grid (AI 도구 비교) ===== */
+  .tool-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px}
+  .tool-card{padding:18px;background:#fff;border:1px solid var(--line);border-radius:14px;transition:all .25s}
+  .tool-card:hover{transform:translateY(-2px);box-shadow:var(--shadow);border-color:var(--brand-green)}
+  .tool-card .nm{font-size:18px;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:8px}
+  .tool-card .nm .badge{font-size:10px;padding:2px 8px;border-radius:999px;background:var(--brand-green-soft);color:var(--brand-green-dark);font-weight:800;letter-spacing:.04em}
+  .tool-card .for{font-size:12px;color:var(--ink-mute);margin-top:4px;font-weight:700}
+  .tool-card .desc{font-size:13.5px;color:var(--ink-soft);margin-top:8px;line-height:1.55;word-break:keep-all}
+
+  /* ===== Case studies ===== */
+  .case-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px;flex:1;min-height:0}
+  .case-col{display:flex;flex-direction:column;gap:12px;min-height:0}
+  .case-h{font-size:14px;font-weight:800;letter-spacing:.04em;padding:6px 12px;border-radius:999px;width:max-content}
+  .case-h.win{background:var(--brand-green-soft);color:var(--brand-green-dark)}
+  .case-h.lose{background:#FFF6F2;color:#A24410}
+  .case-card{padding:14px 16px;background:#fff;border:1px solid var(--line);border-radius:12px}
+  .case-card.win{border-left:4px solid var(--brand-green)}
+  .case-card.lose{border-left:4px solid #FF6B35}
+  .case-card .who{font-weight:800;font-size:15px;color:var(--ink)}
+  .case-card .what{font-size:13px;color:var(--ink-soft);margin-top:4px;line-height:1.5;word-break:keep-all}
+
+  /* ===== Step list (실습/JSON 변환 등) ===== */
+  .step-list{display:flex;flex-direction:column;gap:14px;margin-top:18px}
+  .step{display:flex;gap:16px;align-items:flex-start;padding:18px 22px;background:#fff;border:1px solid var(--line);border-radius:14px}
+  .step-n{flex:0 0 38px;width:38px;height:38px;border-radius:10px;background:var(--brand-green);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px}
+  .step-t{font-weight:800;font-size:17px;color:var(--ink)}
+  .step-d{font-size:14px;color:var(--ink-soft);margin-top:4px;line-height:1.55;word-break:keep-all}
+
+  /* ===== JSON converter visual ===== */
+  .json-conv{display:grid;grid-template-columns:1fr auto 1fr;gap:18px;align-items:center;margin-top:18px}
+  .json-side{padding:18px 20px;background:#fff;border:1px solid var(--line);border-radius:14px}
+  .json-side h4{font-size:13px;color:var(--ink-mute);margin-bottom:10px;font-weight:700}
+  .json-side .nat{font-size:15px;color:var(--ink-soft);line-height:1.6;font-style:italic;word-break:keep-all}
+  .json-side pre{font-family:'JetBrains Mono',Menlo,Consolas,monospace;background:#0E1116;color:#E7E9EE;padding:14px 16px;border-radius:10px;font-size:13px;line-height:1.65;margin:0;overflow:auto}
+  .json-side pre .k{color:#FFD27A}.json-side pre .s{color:#9BE08F}.json-side pre .n{color:#7CC4FF}
+  .json-arrow{font-size:32px;color:var(--brand-green);font-weight:800;animation:nudge 1.6s ease-in-out infinite}
+
+  /* ===== CLI mock ===== */
+  .cli-mock{background:#0E1116;border-radius:14px;padding:18px 22px;font-family:'JetBrains Mono',Menlo,Consolas,monospace;font-size:14px;line-height:1.8;color:#E7E9EE;margin-top:14px}
+  .cli-mock .prompt{color:var(--brand-green)}
+  .cli-mock .cmt{color:#7A828F;font-style:italic}
+  .cli-mock .out{color:#A8B0BA}
+
+  @media (max-width:900px){
+    .slide{padding:36px 28px}
+    h1.title{font-size:38px}
+    h2.title{font-size:30px}
+    .toc-grid,.web-compare,.compare-wrap,.para-hero,.two-col,.concept-grid,.why-grid,.harness{grid-template-columns:1fr;gap:14px}
+    .timeline{flex-direction:column}
+    .tl-arrow{transform:rotate(90deg);padding:6px 0}
+    .slide-foot{left:28px;right:28px}
+  }
+</style>
+</head>
+<body>
+
+<div class="help"><span class="kbd">←</span><span class="kbd">→</span><span>로 이동</span><span class="kbd">F</span><span>전체화면</span></div>
+
+<div class="stage">
+  <div class="deck" id="deck">
+
+    <!-- 1. Cover -->
+    <section class="slide cover active">
+      <div class="cover-orbs"><span></span><span></span><span></span><span></span></div>
+      <h1 class="reveal">코딩과 AI 패러다임,<br/>지금 알아두어야 할 것들</h1>
+      <div class="subtitle reveal">코딩의 본질부터, AI 활용 패러다임의 진화까지 한 번에</div>
+    </section>
+
+    <!-- 2. 학습 목표 -->
+    <section class="slide">
+      <div class="slide-head"><div class="brand"><span class="dot"></span>Part 0 · 학습 목표</div><span class="pill">Goal</span></div>
+      <h2 class="title reveal">이 강의가 끝나면 — <span style="color:var(--brand-green-dark)">여러분은</span></h2>
+      <div class="subtitle reveal">아래 6가지를 자기 언어로 설명할 수 있게 됩니다.</div>
+
+      <div class="objectives reveal">
+        <div class="obj-item"><div class="check">✓</div><div><div class="ot">코딩의 본질을 한 문장으로</div><div class="od">"세상을 데이터로 옮기는 일" — 비유 없이도 와닿는 수준</div></div></div>
+        <div class="obj-item"><div class="check">✓</div><div><div class="ot">변수·함수·클래스·객체 구분</div><div class="od">실제 코드를 보고 "이건 함수네 / 이건 객체네" 알아보기</div></div></div>
+        <div class="obj-item"><div class="check">✓</div><div><div class="ot">JSON · API · HTTP의 의미와 쓸모</div><div class="od">왜 이 셋을 모르면 AI 응용이 어려운지 이해</div></div></div>
+        <div class="obj-item"><div class="check">✓</div><div><div class="ot">프롬프트·에이전틱·하네스의 차이</div><div class="od">3세대 AI 활용 패러다임의 진화를 한 줄로 요약</div></div></div>
+        <div class="obj-item"><div class="check">✓</div><div><div class="ot">AI 도구를 일에 응용할 시나리오</div><div class="od">팀의 반복 업무를 어떤 도구로 자동화할지 떠올리기</div></div></div>
+        <div class="obj-item"><div class="check">✓</div><div><div class="ot">다음 30 / 60 / 90일 학습 로드맵</div><div class="od">막연하지 않은, 구체적인 다음 한 걸음을 정한다</div></div></div>
+      </div>
+
+      <div class="slide-foot"><span>코딩과 AI 패러다임</span><span></span></div>
+      <div class="progress-bar"></div>
+    </section>
+
+    <!-- 3. TOC -->
+    <section class="slide">
+      <div class="slide-head"><div class="brand"><span class="dot"></span>목차</div><span class="pill">Agenda</span></div>
+      <h2 class="title reveal">오늘 함께 살펴볼 두 가지 큰 흐름</h2>
+      <div class="subtitle reveal">코딩의 본질을 이해하고, AI 활용 패러다임의 진화를 따라가 봅니다.</div>
+
+      <div class="toc-grid reveal" style="margin-top:32px">
+        <div class="toc-card" data-go="3">
+          <div class="n">01</div>
+          <div><div class="t">코딩이란 무엇인가</div><div class="d">알고리즘 구현이 아닌, 세상을 데이터로 표현하는 일</div></div>
+        </div>
+        <div class="toc-card" data-go="4">
+          <div class="n">02</div>
+          <div><div class="t">AI 시대에 왜 코딩을 알아야 할까</div><div class="d">대화창의 한계 vs. 직접 응용의 가능성</div></div>
+        </div>
+        <div class="toc-card" data-go="5">
+          <div class="n">03</div>
+          <div><div class="t">프로그래밍의 기본 구조</div><div class="d">변수 · 함수 · 클래스 · 객체, 4가지 핵심 개념</div></div>
+        </div>
+        <div class="toc-card" data-go="6">
+          <div class="n">04</div>
+          <div><div class="t">웹 프로그래밍을 알면 좋은 이유</div><div class="d">대화창 너머 — 응용성의 폭발</div></div>
+        </div>
+        <div class="toc-card" data-go="8">
+          <div class="n">05</div>
+          <div><div class="t">AI 패러다임의 진화</div><div class="d">프롬프트 → 에이전틱 → 하네스 엔지니어링</div></div>
+        </div>
+        <div class="toc-card" data-go="13">
+          <div class="n">06</div>
+          <div><div class="t">사용 전후 품질 비교</div><div class="d">왜 엔지니어링이 결과를 바꾸는가</div></div>
+        </div>
+      </div>
+
+      <div class="slide-foot"><span>코딩과 AI 패러다임</span><span></span></div>
+      <div class="progress-bar"></div>
+    </section>
+
+    <!-- 3. Section 1 divider -->
+    <section class="slide section-divider">
+      <div class="reveal num">01</div>
+      <h2 class="reveal">코딩 기초</h2>
+      <div class="subtitle reveal">코딩이란 무엇이고, 알면 무엇이 달라지는가</div>
+    </section>
+
+    <!-- 4. 코딩이란 -->
+    <section class="slide">
+      <div class="slide-head"><div class="brand"><span class="dot"></span>Part 1 · 코딩이란 무엇인가</div><span class="pill">개념</span></div>
+      <h2 class="title reveal">코딩은 <span style="color:var(--brand-green-dark)">알고리즘 구현</span>이 아니라, <span style="color:var(--brand-green-dark)">세상을 데이터로 옮기는</span> 일입니다</h2>
+      <div class="subtitle reveal">현실의 사물·행동·관계를 컴퓨터가 이해할 수 있는 구조로 번역하는 작업</div>
+
+      <div class="map-wrap reveal" style="margin-top:22px">
+        <div class="map-card">
+          <h4>🏪 현실 세계 (카페)</h4>
+          <div class="row"><span>고객</span><b>김현철</b></div>
+          <div class="row"><span>주문</span><b>아메리카노 1잔</b></div>
+          <div class="row"><span>가격</span><b>4,500원</b></div>
+          <div class="row"><span>결제 수단</span><b>카드</b></div>
+          <div class="row"><span>주문 시각</span><b>09:14</b></div>
+        </div>
+        <div class="map-arrow">→</div>
+        <div class="map-card">
+          <h4>💾 데이터 모델 (코드)</h4>
+<pre class="code-block"><span class="k">const</span> order = {
+  customer: <span class="s">"김현철"</span>,
+  item: <span class="s">"아메리카노"</span>,
+  qty: <span class="n">1</span>,
+  price: <span class="n">4500</span>,
+  pay: <span class="s">"card"</span>,
+  at: <span class="s">"2026-05-06 09:14"</span>
+}</pre>
+        </div>
+      </div>
+
+      <div class="card green reveal" style="margin-top:22px">
+        <div style="display:flex;gap:14px;align-items:flex-start">
+          <div style="font-size:30px">💡</div>
+          <div>
+            <h3 style="color:var(--brand-green-dark);margin-bottom:6px;font-size:20px">결국 코딩이 잘 된 서비스란?</h3>
+            <div style="color:var(--ink-soft);font-size:17px;line-height:1.6;word-break:keep-all">현실을 얼마나 <b>정확하고 풍부하게 데이터로 표현했는가</b>의 문제입니다. 알고리즘은 그 위에서 돌아가는 부속일 뿐, 본질은 모델링입니다.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-foot"><span>코딩과 AI 패러다임</span><span></span></div>
+      <div class="progress-bar"></div>
+    </section>
+
+    <!-- 5. AI 시대에 왜 코딩 -->
+    <section class="slide">
+      <div class="slide-head"><div class="brand"><span class="dot"></span>Part 1 · AI 시대의 코딩</div><span class="pill">Why</span></div>
+      <h2 class="title reveal">AI가 다 짜준다는데, 왜 굳이 <span style="color:var(--brand-green-dark)">코딩을 알아야</span> 할까요?</h2>
+      <div class="subtitle reveal">대화창에 붙어 있는 사람과, 그것을 응용하는 사람의 격차는 점점 벌어집니다.</div>
+
+      <div class="two-col" style="margin-top:18px">
+        <ul class="stack reveal">
+          <li><b>요구사항을 데이터 구조로 번역</b>할 수 있어야 AI에게 정확히 지시할 수 있습니다.</li>
+          <li>AI 결과가 <b>맞는지·잘못됐는지</b> 판단하려면 코드 동작 감각이 필요합니다.</li>
+          <li>대화창 밖으로 나와 <b>API·자동화·워크플로우</b>로 연결해야 진짜 생산성이 시작됩니다.</li>
+          <li>AI는 <b>"맥락"</b>을 먹고 자랍니다. 좋은 맥락은 코드와 데이터를 다룰 줄 아는 사람이 만듭니다.</li>
+        </ul>
+        <div class="card reveal">
+          <div class="quote">"코딩을 모르는 사람은 AI에게 일을 시키는 것이 아니라, AI에게 휘둘립니다."</div>
+          <div style="margin-top:18px;display:grid;grid-template-columns:1fr 1fr;gap:14px">
+            <div class="metric"><div class="lbl">대화창만 사용</div><div class="v" style="color:var(--warn)">~30%</div><div class="delta" style="color:var(--warn)">단발성 의존</div></div>
+            <div class="metric"><div class="lbl">코드 응용 가능</div><div class="v">~3×</div><div class="delta">반복 자동화</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-foot"><span>코딩과 AI 패러다임</span><span></span></div>
+      <div class="progress-bar"></div>
+    </section>
+
+    <!-- 6. 프로그래밍 기본 구조 -->
+    <section class="slide">
+      <div class="slide-head"><div class="brand"><span class="dot"></span>Part 1 · 프로그래밍 언어의 기본 구조</div><span class="pill">Concepts</span></div>
+      <h2 class="title reveal">코드를 이루는 <span style="color:var(--brand-green-dark)">4가지 부품</span></h2>
+      <div class="subtitle reveal">카드를 클릭하면 — 한 줄 설명 · TypeScript 예시 · 실제 동작 애니메이션이 함께 보여집니다.</div>
+
+      <div class="concept-grid reveal">
+        <div class="concept active" data-concept="var">
+          <div class="icon">📦</div><h4>변수 (Variable)</h4>
+          <p>값을 담는 이름표 붙은 상자</p>
+        </div>
+        <div class="concept" data-concept="func">
+          <div class="icon">⚙️</div><h4>함수 (Function)</h4>
+          <p>입력 → 처리 → 출력의 작업 단위</p>
+        </div>
+        <div class="concept" data-concept="class">
+          <div class="icon">📐</div><h4>클래스 (Class)</h4>
+          <p>같은 종류를 찍어내는 설계도</p>
+        </div>
+        <div class="concept" data-concept="obj">
+          <div class="icon">🎯</div><h4>객체 (Object)</h4>
+          <p>설계도로 만들어진 실제 사물</p>
+        </div>
+      </div>
+
+      <div class="concept-detail reveal" id="conceptDetail"></div>
+
+      <div class="slide-foot"><span>코딩과 AI 패러다임</span><span></span></div>
+      <div class="progress-bar"></div>
+    </section>
+
+    <!-- 데이터 타입 -->
+    <section class="slide">
+      <div class="slide-head"><div class="brand"><span class="dot"></span>Part 1 · 데이터 타입</div><span class="pill">Data</span></div>
+      <h2 class="title reveal">코드가 다루는 <span style="color:var(--brand-green-dark)">6가지 기본 재료</span></h2>
+      <div class="subtitle reveal">코딩이 "데이터화"라면 — 그 데이터가 어떤 모양인지부터 알아야 합니다.</div>
+
+      <div class="dt-grid reveal">
+        <div class="dt-card"><div class="ic">🔢</div><div class="nm">number<small>숫자</small></div><div class="ex">4500, 0.2, -10</div><div class="me">가격·수량·확률·온도 등 모든 수치</div></div>
+        <div class="dt-card"><div class="ic">📝</div><div class="nm">string<small>문자열</small></div><div class="ex">"김현철"</div><div class="me">이름·메시지·URL — 따옴표로 감싼 모든 글</div></div>
+        <div class="dt-card"><div class="ic">✅</div><div class="nm">boolean<small>참 / 거짓</small></div><div class="ex">true / false</div><div class="me">로그인 여부, 회원 여부 — Yes / No 한 비트</div></div>
+        <div class="dt-card"><div class="ic">📋</div><div class="nm">array<small>리스트</small></div><div class="ex">[1, 2, 3]</div><div class="me">여러 값을 순서대로 — 장바구니, 댓글 목록</div></div>
+        <div class="dt-card"><div class="ic">📦</div><div class="nm">object<small>묶음</small></div><div class="ex">{ name: "김" }</div><div class="me">관련 정보를 키-값 쌍으로 — 사용자 한 명, 주문 한 건</div></div>
+        <div class="dt-card"><div class="ic">⚪</div><div class="nm">null / undefined<small>비어있음</small></div><div class="ex">null</div><div class="me">"아직 값이 없음" — 기본값·예외 처리에서 매우 중요</div></div>
+      </div>
+
+      <div class="card green reveal" style="margin-top:18px">
+        <div style="display:flex;gap:14px;align-items:center"><div style="font-size:28px">💡</div><div style="font-size:16px;color:var(--ink-soft);line-height:1.6;word-break:keep-all">서비스의 모든 데이터는 결국 이 6가지의 <b>조합</b>입니다. AI 응답도 마찬가지로 — 이 모양들로 받아내야 자동화가 가능합니다.</div></div>
+      </div>
+
+      <div class="slide-foot"><span>코딩과 AI 패러다임</span><span></span></div>
+      <div class="progress-bar"></div>
+    </section>
+
+    <!-- 조건문·반복문 -->
+    <section class="slide">
+      <div class="slide-head"><div class="brand"><span class="dot"></span>Part 1 · 컴퓨터의 의사결정</div><span class="pill">Logic</span></div>
+      <h2 class="title reveal">조건문과 반복문 — <span style="color:var(--brand-green-dark)">"만약에"</span>와 <span style="color:var(--brand-green-dark)">"여러 번"</span></h2>
+      <div class="subtitle reveal">코드는 결국 <b>판단</b>하고 <b>반복</b>합니다. 이 두 개만 알아도 절반은 이해한 셈입니다.</div>
+
+      <div class="two-col" style="margin-top:18px">
+        <div class="reveal">
+          <h3 style="color:var(--brand-green-dark);margin-bottom:8px">if / else — 조건에 따라 갈래길</h3>
+          <pre class="cd-code" style="margin-top:10px;font-size:14px;flex:none">
+<span class="c">// 회원이면 10% 할인, 아니면 정가</span>
+<span class="k">if</span> (customer.isMember) {
+  finalPrice = price * <span class="n">0.9</span>;
+} <span class="k">else</span> {
+  finalPrice = price;
+}</pre>
+          <div class="card green" style="margin-top:14px;padding:14px 18px;font-size:14px;line-height:1.55;word-break:keep-all">실생활: "회원입니까?" → 두 갈래 중 한쪽으로 흘러가는 카페 카운터</div>
+        </div>
+        <div class="reveal">
+          <h3 style="color:var(--brand-green-dark);margin-bottom:8px">for — 같은 일을 여러 번</h3>
+          <pre class="cd-code" style="margin-top:10px;font-size:14px;flex:none">
+<span class="c">// 100건 주문을 한 번에 처리</span>
+<span class="k">for</span> (<span class="k">const</span> order <span class="k">of</span> orders) {
+  sendReceipt(order);
+  saveToDB(order);
+}</pre>
+          <div class="card" style="margin-top:14px;padding:14px 18px;font-size:14px;line-height:1.55;word-break:keep-all">실생활: 컨베이어 벨트에서 박스가 하나씩 같은 작업을 거치는 모습</div>
+        </div>
+      </div>
+
+      <div class="slide-foot"><span>코딩과 AI 패러다임</span><span></span></div>
+      <div class="progress-bar"></div>
+    </section>
+
+    <!-- 에러는 친구다 -->
+    <section class="slide">
+      <div class="slide-head"><div class="brand"><span class="dot"></span>Part 1 · 디버깅 마인드셋</div><span class="pill">Debugging</span></div>
+      <h2 class="title reveal">에러는 적이 아니라 <span style="color:var(--brand-green-dark)">길잡이</span>입니다</h2>
+      <div class="subtitle reveal">코드는 항상 깨집니다. 잘 짜는 사람은 "안 깨는 사람"이 아니라 "깨진 걸 빨리 고치는 사람"입니다.</div>
+
+      <div class="step-list reveal">
+        <div class="step"><div class="step-n">1</div><div><div class="step-t">어디서 깨졌나? — 위치 먼저</div><div class="step-d">에러 메시지 맨 위 줄에 보통 파일·줄 번호가 적혀 있습니다. 그 줄부터 읽으세요. 다른 줄은 잠시 무시.</div></div></div>
+        <div class="step"><div class="step-n">2</div><div><div class="step-t">무엇이 잘못됐다고 말하나? — 키워드 한 줄</div><div class="step-d">"undefined is not a function" / "Cannot read property of null" — 영어가 어려우면 그대로 검색하세요. 같은 에러를 만난 사람이 반드시 있습니다.</div></div></div>
+        <div class="step"><div class="step-n">3</div><div><div class="step-t">내 가정이 어디서 틀렸나? — 한 줄씩 확인</div><div class="step-d">"여기에 값이 있을 거라 가정했는데 없었구나." 디버깅의 90%는 자기 가정과 실제의 차이를 찾는 일입니다.</div></div></div>
+      </div>
+
+      <div class="card reveal" style="margin-top:14px">
+        <div style="display:flex;gap:14px;align-items:center"><div style="font-size:28px">🤖</div><div style="font-size:15px;color:var(--ink-soft);line-height:1.6;word-break:keep-all"><b>AI에게 디버깅 시키기</b> — 에러 메시지 + 관련 코드 + "내가 기대한 동작은 X였는데 실제로는 Y"를 던지면, 대부분 한 번에 원인을 찾아줍니다.</div></div>
+      </div>
+
+      <div class="slide-foot"><span>코딩과 AI 패러다임</span><span></span></div>
+      <div class="progress-bar"></div>
+    </section>
+
+    <!-- JSON -->
+    <section class="slide">
+      <div class="slide-head"><div class="brand"><span class="dot"></span>Part 1 · 데이터 교환 포맷</div><span class="pill">JSON</span></div>
+      <h2 class="title reveal">JSON — <span style="color:var(--brand-green-dark)">AI와 시스템의 공통어</span></h2>
+      <div class="subtitle reveal">사람의 말은 모호합니다. 시스템 사이를 오갈 데이터는 정확한 모양이 필요합니다 — 그게 JSON입니다.</div>
+
+      <div class="json-conv reveal">
+        <div class="json-side">
+          <h4>🗣 사람의 말 (자연어)</h4>
+          <div class="nat">"김현철 고객이 5월 6일에 아메리카노 한 잔을 4,500원에 카드로 주문했어요."</div>
+        </div>
+        <div class="json-arrow">→</div>
+        <div class="json-side">
+          <h4>📦 JSON (구조화된 데이터)</h4>
+<pre>{
+  <span class="k">"customer"</span>: <span class="s">"김현철"</span>,
+  <span class="k">"item"</span>: <span class="s">"아메리카노"</span>,
+  <span class="k">"qty"</span>: <span class="n">1</span>,
+  <span class="k">"price"</span>: <span class="n">4500</span>,
+  <span class="k">"pay"</span>: <span class="s">"card"</span>,
+  <span class="k">"date"</span>: <span class="s">"2026-05-06"</span>
+}</pre>
+        </div>
+      </div>
+
+      <div class="card green reveal" style="margin-top:18px">
+        <div style="display:flex;gap:14px;align-items:center"><div style="font-size:28px">🔑</div><div style="font-size:15px;color:var(--ink-soft);line-height:1.6;word-break:keep-all"><b>왜 중요한가</b> — AI에게 "JSON으로만 답하라"고 강제하면, 그 답을 즉시 시스템·DB·다음 단계 작업으로 흘려보낼 수 있습니다. 자유 형식 답변은 자동화 불가, JSON은 자동화의 시작입니다.</div></div>
+      </div>
+
+      <div class="slide-foot"><span>코딩과 AI 패러다임</span><span></span></div>
+      <div class="progress-bar"></div>
+    </section>
+
+    <!-- API와 HTTP -->
+    <section class="slide">
+      <div class="slide-head"><div class="brand"><span class="dot"></span>Part 1 · API와 HTTP</div><span class="pill">Web</span></div>
+      <h2 class="title reveal">API는 <span style="color:var(--brand-green-dark)">서비스끼리 주고받는 약속된 대화</span>입니다</h2>
+      <div class="subtitle reveal">웹 위의 모든 것은 결국 — "내가 이렇게 부탁했더니, 이렇게 답을 줬다."</div>
+
+      <div class="reveal" style="margin-top:8px">
+        <h3 style="font-size:15px;color:var(--ink-mute);font-weight:700;margin-bottom:6px;letter-spacing:.05em">HTTP 메서드 — "어떤 부탁인가"</h3>
+        <div class="http-grid">
+          <div class="http-card http-get"><div class="m">GET</div><div class="d">읽기 — "데이터 좀 줘"</div></div>
+          <div class="http-card http-post"><div class="m">POST</div><div class="d">생성 — "이거 새로 만들어줘"</div></div>
+          <div class="http-card http-put"><div class="m">PUT</div><div class="d">수정 — "이걸로 바꿔줘"</div></div>
+          <div class="http-card http-delete"><div class="m">DELETE</div><div class="d">삭제 — "이거 지워줘"</div></div>
+        </div>
+      </div>
+
+      <div class="reveal" style="margin-top:18px">
+        <h3 style="font-size:15px;color:var(--ink-mute);font-weight:700;margin-bottom:6px;letter-spacing:.05em">상태 코드 — "어떻게 답했나"</h3>
+        <div class="http-status">
+          <div class="st-ok">2xx · 잘 됐어요 (200 OK)</div>
+          <div class="st-warn">4xx · 너의 잘못이야 (404 없음, 401 권한)</div>
+          <div class="st-err">5xx · 서버 잘못이야 (500 에러)</div>
+        </div>
+      </div>
+
+      <div class="card green reveal" style="margin-top:18px">
+        <div style="display:flex;gap:14px;align-items:center"><div style="font-size:28px">🤖</div><div style="font-size:15px;color:var(--ink-soft);line-height:1.6;word-break:keep-all"><b>Claude·GPT API도 같은 모양</b> — POST 요청에 프롬프트(JSON)를 담아 보내면, 모델이 답(JSON)을 돌려줍니다. 즉, AI는 "특별한 무언가"가 아니라 <b>JSON을 잘 다루는 또 하나의 서버</b>일 뿐입니다.</div></div>
+      </div>
+
+      <div class="slide-foot"><span>코딩과 AI 패러다임</span><span></span></div>
+      <div class="progress-bar"></div>
+    </section>
+
+    <!-- 7. 웹 프로그래밍을 알면 좋은점 -->
+    <section class="slide">
+      <div class="slide-head"><div class="brand"><span class="dot"></span>Part 1 · 웹 프로그래밍의 가치</div><span class="pill">Application</span></div>
+      <h2 class="title reveal">대화창에 머무를 것인가, <span style="color:var(--brand-green-dark)">서비스로 만들 것인가</span></h2>
+      <div class="subtitle reveal">웹을 알면 GPT·Claude는 도구가 되고, 모르면 SNS의 대화상대로 끝납니다.</div>
+
+      <div class="web-compare reveal">
+        <div class="web-card bad">
+          <span class="lbl">대화창 사용에 머무름</span>
+          <h4>❌ 매번 같은 일을 반복</h4>
+          <ul>
+            <li>같은 프롬프트를 매일 직접 입력</li>
+            <li>결과를 수동 복사 → 엑셀·문서에 옮김</li>
+            <li>다른 시스템과 연결 불가</li>
+            <li>팀원에게 공유하려면 화면 캡쳐</li>
+            <li>한 번에 100건 처리 불가</li>
+          </ul>
+        </div>
+        <div class="web-card good">
+          <span class="lbl">웹 프로그래밍 응용</span>
+          <h4>✅ AI를 서비스의 부품으로</h4>
+          <ul>
+            <li>버튼 클릭 한 번 = AI 호출 100번</li>
+            <li>구글 시트·슬랙·노션과 자동 연결</li>
+            <li>사내 데이터를 AI에 안전하게 주입</li>
+            <li>팀이 함께 쓰는 내부 도구로 발전</li>
+            <li>스케줄·알림·검토 흐름까지 자동화</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card reveal" style="margin-top:20px">
+        <div style="display:flex;gap:14px;align-items:center">
+          <div style="font-size:30px">🔗</div>
+          <div style="font-size:16.5px;color:var(--ink-soft);line-height:1.6;word-break:keep-all">웹의 핵심은 <b>요청(Request)과 응답(Response)</b>입니다. 이걸 이해하면 AI 모델은 그저 <b>"질문하면 답을 주는 또 하나의 서버"</b>일 뿐 — 그러면 어디든 붙일 수 있습니다.</div>
+        </div>
+      </div>
+
+      <div class="slide-foot"><span>코딩과 AI 패러다임</span><span></span></div>
+      <div class="progress-bar"></div>
+    </section>
+
+    <!-- 터미널 / CLI 맛보기 -->
+    <section class="slide">
+      <div class="slide-head"><div class="brand"><span class="dot"></span>Part 1 · 터미널 맛보기</div><span class="pill">CLI</span></div>
+      <h2 class="title reveal">검은 화면을 두려워하지 마세요</h2>
+      <div class="subtitle reveal">개발자의 도구 절반은 "터미널(CLI)"에 있습니다. 5개만 알면 됩니다.</div>
+
+      <div class="two-col reveal" style="margin-top:18px">
+        <div>
+          <div class="cli-mock">
+<span class="cmt"># 현재 폴더 보기</span>
+<span class="prompt">$</span> ls
+<span class="out">presentation.html  README.md</span>
+
+<span class="cmt"># 폴더 이동</span>
+<span class="prompt">$</span> cd projects/ai-guide
+
+<span class="cmt"># 파일 만들기</span>
+<span class="prompt">$</span> touch new-file.txt
+
+<span class="cmt"># 패키지 설치 / 실행</span>
+<span class="prompt">$</span> npm install
+<span class="prompt">$</span> npm run dev
+<span class="out">▶ Server running on :3000</span>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div class="card" style="padding:16px 18px"><h3 style="font-size:16px;margin-bottom:6px">왜 터미널이 중요한가</h3><div style="font-size:14px;color:var(--ink-soft);line-height:1.55;word-break:keep-all">AI 도구(Claude Code, gh CLI, npm 등) 대부분이 <b>터미널 위에서 실행</b>됩니다. 마우스로는 못 하는 일을, 한 줄 명령으로 한 번에.</div></div>
+          <div class="card green" style="padding:16px 18px"><h3 style="font-size:16px;margin-bottom:6px">기억할 5가지</h3><div style="font-size:14px;color:var(--ink-soft);line-height:1.7;word-break:keep-all"><b>ls</b> 보기 · <b>cd</b> 이동 · <b>mkdir</b> 폴더 만들기 · <b>cat</b> 파일 보기 · <b>↑</b> 이전 명령</div></div>
+        </div>
+      </div>
+
+      <div class="slide-foot"><span>코딩과 AI 패러다임</span><span></span></div>
+      <div class="progress-bar"></div>
+    </section>
+
+    <!-- AI 코딩 도구 한 눈에 -->
+    <section class="slide">
+      <div class="slide-head"><div class="brand"><span class="dot"></span>Part 1 · AI 코딩 도구</div><span class="pill">Tools</span></div>
+      <h2 class="title reveal">지금 바로 써볼 수 있는 <span style="color:var(--brand-green-dark)">AI 도구들</span></h2>
+      <div class="subtitle reveal">각자 잘 하는 일이 다릅니다. 상황에 맞춰 골라 쓰는 감각이 중요합니다.</div>
+
+      <div class="tool-grid reveal">
+        <div class="tool-card"><div class="nm">Claude Code <span class="badge">CLI</span></div><div class="for">FOR · 깊은 코드 작업</div><div class="desc">터미널 기반 에이전틱 도구. 큰 코드베이스 분석·리팩터링·자동화에 최적.</div></div>
+        <div class="tool-card"><div class="nm">Cursor <span class="badge">IDE</span></div><div class="for">FOR · 일상 코딩</div><div class="desc">VS Code 위에서 AI 자동완성·채팅·다중 파일 편집. 가장 자연스러운 코딩 경험.</div></div>
+        <div class="tool-card"><div class="nm">v0 <span class="badge">UI</span></div><div class="for">FOR · UI 시안</div><div class="desc">"이런 페이지 만들어줘" 한 줄에 React 컴포넌트와 디자인 한 번에.</div></div>
+        <div class="tool-card"><div class="nm">GitHub Copilot <span class="badge">IDE</span></div><div class="for">FOR · 코드 자동완성</div><div class="desc">에디터에서 다음 줄을 미리 채워주는 가장 보편적인 페어 프로그래머.</div></div>
+        <div class="tool-card"><div class="nm">Bolt / Replit <span class="badge">FULL</span></div><div class="for">FOR · 풀스택 즉시</div><div class="desc">브라우저에서 앱을 통째로 — 데이터베이스·배포까지 한 번에 만들어 시연.</div></div>
+        <div class="tool-card"><div class="nm">ChatGPT · Claude.ai <span class="badge">CHAT</span></div><div class="for">FOR · 빠른 질문</div><div class="desc">짧은 코드 조각·아이디어·디버깅 도우미. 누구나 시작하기 좋은 출발점.</div></div>
+      </div>
+
+      <div class="card green reveal" style="margin-top:18px">
+        <div style="display:flex;gap:14px;align-items:center"><div style="font-size:28px">🎯</div><div style="font-size:15px;color:var(--ink-soft);line-height:1.6;word-break:keep-all"><b>고르는 기준</b> — 작업의 크기(한 줄 vs 프로젝트), 결과물(코드 vs UI), 환경(IDE vs 터미널)을 보고 도구를 매칭하세요. 한 도구에 매이지 마세요.</div></div>
+      </div>
+
+      <div class="slide-foot"><span>코딩과 AI 패러다임</span><span></span></div>
+      <div class="progress-bar"></div>
+    </section>
+
+    <!-- 8. Section 2 divider -->
+    <section class="slide section-divider">
+      <div class="reveal num">02</div>
+      <h2 class="reveal">AI 패러다임</h2>
+      <div class="subtitle reveal">프롬프트 엔지니어링 → 에이전틱 → 하네스, 활용의 진화</div>
+    </section>
+
+    <!-- AI 모델은 어떻게 답하나 -->
+    <section class="slide">
+      <div class="slide-head"><div class="brand"><span class="dot"></span>Part 2 · 모델의 작동 원리</div><span class="pill">How LLM works</span></div>
+      <h2 class="title reveal">AI는 글을 읽지 않습니다 — <span style="color:var(--brand-green-dark)">"다음에 올 단어"</span>를 맞히는 게임을 할 뿐입니다</h2>
+      <div class="subtitle reveal">놀라운 답변 뒤의 원리는 의외로 단순합니다. 이걸 알면 한계도 보입니다.</div>
+
+      <div class="token-vis reveal">
+        <div class="token-row">
+          <span class="lab">사람의 문장</span>
+          <span style="font-size:16px;color:var(--ink)">"오늘 점심은 김치찌개를 먹었다"</span>
+        </div>
+        <div class="token-row">
+          <span class="lab">→ 토큰 분리</span>
+          <span class="token">오늘</span><span class="token alt">점심</span><span class="token">은</span><span class="token alt">김치</span><span class="token">찌개</span><span class="token alt">를</span><span class="token">먹었</span><span class="token alt">다</span>
+        </div>
+        <div class="token-row">
+          <span class="lab">→ 숫자(ID)로</span>
+          <span class="token idx">[8421, 14903, 56, 932, 1207, 23, 887, 4]</span>
+        </div>
+        <div class="token-row">
+          <span class="lab">→ 다음 토큰?</span>
+          <span class="token">.</span><span style="color:var(--ink-mute);font-size:13px">(확률 95%)</span>
+          <span class="token alt">!</span><span style="color:var(--ink-mute);font-size:13px">(3%)</span>
+          <span class="token alt">…</span><span style="color:var(--ink-mute);font-size:13px">(2%)</span>
+        </div>
+      </div>
+
+      <div class="two-col reveal" style="margin-top:18px;gap:18px">
+        <div class="card" style="padding:18px"><h3 style="font-size:16px;margin-bottom:6px">🧠 컨텍스트 윈도우</h3><div style="font-size:14px;color:var(--ink-soft);line-height:1.6;word-break:keep-all">모델이 한 번에 "기억할" 수 있는 양. <b>책상 위에 펼쳐 둔 메모지</b>의 크기로 비유 가능. 넘치면 앞부분이 떨어져 나갑니다.</div></div>
+        <div class="card green" style="padding:18px"><h3 style="font-size:16px;margin-bottom:6px">⚠️ 그래서 한계</h3><div style="font-size:14px;color:var(--ink-soft);line-height:1.6;word-break:keep-all">"확률 게임"이라 같은 질문에 다른 답을 줄 수 있고, <b>없는 사실도 그럴듯하게 만들어냅니다</b>(환각). → <b>가드레일·검증</b>이 필요한 이유.</div></div>
+      </div>
+
+      <div class="slide-foot"><span>코딩과 AI 패러다임</span><span></span></div>
+      <div class="progress-bar"></div>
+    </section>
+
+    <!-- 9a. Why engineering — 품질의 3축 -->
+    <section class="slide">
+      <div class="slide-head"><div class="brand"><span class="dot"></span>Part 2 · 왜 "엔지니어링"인가 (1/2)</div><span class="pill">Why · 품질</span></div>
+      <h2 class="title reveal">AI를 잘 쓰는 것은 <span style="color:var(--brand-green-dark)">기술</span>이 아니라 <span style="color:var(--brand-green-dark)">설계</span>의 문제입니다</h2>
+      <div class="subtitle reveal">먼저, 결과의 <b>품질</b>을 떠받치는 3개의 축부터 살펴봅니다.</div>
+
+      <div class="why-grid reveal" style="margin-top:24px">
+        <div class="why">
+          <div class="ic">🎯</div>
+          <h4>일관성 (Consistency)</h4>
+          <p>같은 입력에 같은 품질의 답을 받으려면 구조가 필요합니다. "운"으로 잘 나오는 답은 서비스가 될 수 없습니다.</p>
+        </div>
+        <div class="why">
+          <div class="ic">🔁</div>
+          <h4>반복성 (Reproducibility)</h4>
+          <p>한 번 잘 나온 답을 100번, 1000번 재현하려면 프롬프트·도구·검증을 시스템으로 묶어야 합니다.</p>
+        </div>
+        <div class="why">
+          <div class="ic">🛡️</div>
+          <h4>안전성 (Safety)</h4>
+          <p>모델은 틀립니다(환각). 검증·재시도·가드레일이 없는 AI는 프로덕션에 둘 수 없습니다.</p>
+        </div>
+      </div>
+
+      <div class="card green reveal" style="margin-top:22px">
+        <div style="display:flex;gap:14px;align-items:center">
+          <div style="font-size:28px">📌</div>
+          <div style="font-size:16px;color:var(--ink-soft);line-height:1.6;word-break:keep-all">이 세 가지가 갖춰져야 비로소 AI는 <b>"한번 잘 된 데모"</b>가 아니라 <b>"매일 쓸 수 있는 서비스"</b>가 됩니다.</div>
+        </div>
+      </div>
+
+      <div class="slide-foot"><span>코딩과 AI 패러다임</span><span></span></div>
+      <div class="progress-bar"></div>
+    </section>
+
+    <!-- 9b. Why engineering — 운영의 3축 -->
+    <section class="slide">
+      <div class="slide-head"><div class="brand"><span class="dot"></span>Part 2 · 왜 "엔지니어링"인가 (2/2)</div><span class="pill">Why · 운영</span></div>
+      <h2 class="title reveal">그리고 <span style="color:var(--brand-green-dark)">운영의 3축</span> — 비용, 합성, 측정</h2>
+      <div class="subtitle reveal">서비스가 실제로 돌아가려면 품질만큼이나 운영의 설계가 결정적입니다.</div>
+
+      <div class="why-grid reveal" style="margin-top:24px">
+        <div class="why">
+          <div class="ic">⚡</div>
+          <h4>효율성 (Efficiency)</h4>
+          <p>토큰·시간·비용은 그냥 새어 나갑니다. 캐싱·배치·라우팅 설계가 비용을 10배까지 가르기도 합니다.</p>
+        </div>
+        <div class="why">
+          <div class="ic">🧩</div>
+          <h4>합성 가능성 (Composability)</h4>
+          <p>AI는 "부품"이어야 합니다. 다른 도구·DB·사람과 합쳐질 때 진짜 가치가 만들어집니다.</p>
+        </div>
+        <div class="why">
+          <div class="ic">📈</div>
+          <h4>측정 가능성 (Measurability)</h4>
+          <p>"좋아진다"는 느낌이 아니라 숫자로 측정해야 개선이 가능합니다. 평가 셋과 지표는 엔지니어링의 영역입니다.</p>
+        </div>
+      </div>
+
+      <div class="card reveal" style="margin-top:22px">
+        <div style="display:flex;gap:14px;align-items:center">
+          <div style="font-size:28px">🛠</div>
+          <div style="font-size:16px;color:var(--ink-soft);line-height:1.6;word-break:keep-all">결국 — 같은 모델로도, <b>이 6가지를 어떻게 설계했는가</b>에 따라 결과의 격차가 만들어집니다.</div>
+        </div>
+      </div>
+
+      <div class="slide-foot"><span>코딩과 AI 패러다임</span><span></span></div>
+      <div class="progress-bar"></div>
+    </section>
+
+    <!-- 10. Timeline -->
+    <section class="slide">
+      <div class="slide-head"><div class="brand"><span class="dot"></span>Part 2 · 진화 타임라인</div><span class="pill">Evolution</span></div>
+      <h2 class="title reveal">AI 활용은 <span style="color:var(--brand-green-dark)">3세대</span>로 진화해왔습니다</h2>
+      <div class="subtitle reveal">한 줄 프롬프트에서 → 스스로 일하는 에이전트 → 그 에이전트를 받쳐주는 환경(하네스)으로</div>
+
+      <div class="timeline reveal" id="timeline">
+        <div class="tl-step active" data-tl="0">
+          <div class="yr">1세대 · ~2023</div>
+          <h4>프롬프트 엔지니어링</h4>
+          <p>모델에게 <b>"무엇을, 어떻게 답해야 하는지"</b>를 잘 설명하는 기술. 한 번의 입력 → 한 번의 출력.</p>
+        </div>
+        <div class="tl-arrow">→</div>
+        <div class="tl-step" data-tl="1">
+          <div class="yr">2세대 · 2024~</div>
+          <h4>에이전틱 엔지니어링</h4>
+          <p>모델이 <b>도구를 쓰고, 스스로 판단하고, 여러 단계를 반복</b>하도록 설계. 목표를 주면 알아서 진행.</p>
+        </div>
+        <div class="tl-arrow">→</div>
+        <div class="tl-step" data-tl="2">
+          <div class="yr">3세대 · 2025~</div>
+          <h4>하네스 엔지니어링</h4>
+          <p>에이전트가 <b>일할 수 있는 환경 자체</b>를 설계. 컨텍스트·도구·메모리·가드레일을 통째로 다룸.</p>
+        </div>
+      </div>
+
+      <div class="card reveal" style="margin-top:22px">
+        <div style="display:flex;gap:14px;align-items:center">
+          <div style="font-size:28px">📌</div>
+          <div style="font-size:16px;color:var(--ink-soft);line-height:1.6;word-break:keep-all">각 세대는 <b>이전을 대체하지 않고 포함</b>합니다. 하네스가 잘 짜여 있어도 그 안에는 좋은 프롬프트와 에이전트 루프가 들어가야 합니다.</div>
+        </div>
+      </div>
+
+      <div class="slide-foot"><span>코딩과 AI 패러다임</span><span></span></div>
+      <div class="progress-bar"></div>
+    </section>
+
+    <!-- 11. Prompt Engineering Detail -->
+    <section class="slide">
+      <div class="slide-head"><div class="brand"><span class="dot"></span>Part 2 · 1세대</div><span class="pill" style="background:#FFF6E5;color:#A57400">Prompt Engineering</span></div>
+      <h2 class="title reveal">한 번의 질문을 <span style="color:var(--brand-green-dark)">잘</span> 설계하는 기술</h2>
+      <div class="subtitle reveal">모델에게 역할·맥락·예시·형식을 명확히 지시해서, 한 번의 호출로 원하는 답을 끌어내는 단계입니다.</div>
+
+      <div class="para-hero">
+        <div class="para-left reveal">
+          <h3>프롬프트의 4가지 요소</h3>
+          <div class="para-feat">
+            <div class="f"><b>역할 부여</b> — "You are a senior writer…"</div>
+            <div class="f"><b>맥락 제공</b> — Few-shot 예시, 배경 정보</div>
+            <div class="f"><b>출력 형식 강제</b> — JSON, 표, 단계별 등</div>
+            <div class="f"><b>제약과 톤 명시</b> — "3문장 이내, 격식 있게"</div>
+          </div>
+          <div class="card green" style="margin-top:18px">
+            <div style="font-size:15px;color:var(--ink-soft);line-height:1.6;word-break:keep-all">💡 모델 성능이 같아도 — 프롬프트 설계만으로 <b>정확도 30% 이상 차이</b>가 납니다. 다음 페이지에서 패턴을 정리해 봅니다.</div>
+          </div>
+        </div>
+        <div class="para-right reveal">
+          <div class="term-head"><span class="d"></span><span class="d"></span><span class="d"></span><span>예시 — 보고서 요약 프롬프트</span></div>
+          <div class="term-line"><span class="c"># 역할</span></div>
+          <div class="term-line"><span class="u">너는</span> 10년차 PM이다.</div>
+          <div class="term-line"><span class="c"># 맥락</span></div>
+          <div class="term-line">아래는 분기 회의록 전문이다. ...</div>
+          <div class="term-line"><span class="c"># 작업</span></div>
+          <div class="term-line">핵심 결정사항만 추려라.</div>
+          <div class="term-line"><span class="c"># 형식</span></div>
+          <div class="term-line"><span class="a">- [담당자] [결정] [기한]</span></div>
+          <div class="term-line"><span class="a">- 5줄 이내, 한국어</span></div>
+          <div class="term-line">&nbsp;</div>
+          <div class="term-line"><span class="c"># 입력</span></div>
+          <div class="term-line">{회의록 본문...}</div>
+        </div>
+      </div>
+
+      <div class="slide-foot"><span>코딩과 AI 패러다임</span><span></span></div>
+      <div class="progress-bar"></div>
+    </section>
+
+    <!-- 프롬프트 패턴 카탈로그 -->
+    <section class="slide">
+      <div class="slide-head"><div class="brand"><span class="dot"></span>Part 2 · 프롬프트 패턴</div><span class="pill" style="background:#FFF6E5;color:#A57400">Patterns</span></div>
+      <h2 class="title reveal">자주 쓰는 <span style="color:var(--brand-green-dark)">프롬프트 패턴 5가지</span></h2>
+      <div class="subtitle reveal">상황에 맞춰 골라 쓰면 — 같은 모델로도 정확도가 눈에 띄게 올라갑니다.</div>
+
+      <div class="why-grid reveal" style="grid-template-columns:repeat(3,1fr);margin-top:20px">
+        <div class="why"><div class="ic">🎯</div><h4>Zero-shot</h4><p>예시 없이 바로 부탁. "다음 글을 3줄로 요약해줘." 가장 단순하지만 모호한 작업엔 약함.</p></div>
+        <div class="why"><div class="ic">📚</div><h4>Few-shot</h4><p>예시 2~5개를 함께 제시. "이런 식으로 분류해줘. 예: A → 카테고리X..." 분류·포맷 작업에 강력.</p></div>
+        <div class="why"><div class="ic">🧮</div><h4>Chain-of-Thought</h4><p>"단계별로 생각해보고 답해줘" — 추론·계산 작업에서 정확도 대폭 상승.</p></div>
+      </div>
+      <div class="why-grid reveal" style="grid-template-columns:repeat(2,1fr);margin-top:14px">
+        <div class="why"><div class="ic">🎭</div><h4>Role + Context</h4><p>"너는 10년차 PM이다. 우리 회사 상황은 X다." 역할과 맥락을 깔면 답의 톤·깊이가 달라집니다.</p></div>
+        <div class="why"><div class="ic">🔁</div><h4>Self-Critique</h4><p>"답을 쓴 뒤, 직접 비판하고 더 나은 답을 만들어라." — 모델이 스스로 검토하면 품질 ↑.</p></div>
+      </div>
+
+      <div class="reveal" style="margin-top:14px;padding:12px 18px;background:var(--bg-soft);border-radius:10px;font-size:14px;color:var(--ink-soft);line-height:1.55;text-align:center;word-break:keep-all">
+        다음 5장에서 각 패턴을 <b>실제 프롬프트와 출력 예시</b>로 자세히 살펴봅니다 →
+      </div>
+
+      <div class="slide-foot"><span>코딩과 AI 패러다임</span><span></span></div>
+      <div class="progress-bar"></div>
+    </section>
+
+    <!-- 패턴 1 — Zero-shot -->
+    <section class="slide">
+      <div class="slide-head"><div class="brand"><span class="dot"></span>Part 2 · 프롬프트 패턴 1/5</div><span class="pill" style="background:#FFF6E5;color:#A57400">Zero-shot</span></div>
+      <h2 class="title reveal">패턴 ① <span style="color:var(--brand-green-dark)">Zero-shot</span> — 예시 없이 바로 부탁</h2>
+      <div class="subtitle reveal">가장 단순한 형태. 모델이 이미 잘 아는 일반적인 작업에 적합합니다.</div>
+
+      <div class="pp-detail reveal">
+        <div class="pp-card">
+          <div style="display:flex;align-items:center;gap:14px"><div class="ic">🎯</div><span class="lbl">Zero-shot</span></div>
+          <h3>예시 한 개도 없이 — 그냥 부탁</h3>
+          <div class="desc">모델이 사전 학습으로 이미 알고 있는 영역의 일이라면, 굳이 예시를 줄 필요가 없습니다. <b>가장 빠르고 가벼운 방법</b>이지만, 모호한 작업에는 결과가 흔들립니다.</div>
+          <div class="when"><b>👍 이럴 때 좋아요</b><br/>번역 · 요약 · 일반 상식 질문 · 잘 정의된 글쓰기</div>
+          <div class="effect"><b>⚠️ 한계</b><br/>회사 내부 규칙·도메인 특수 작업에서는 일관성이 떨어집니다</div>
+        </div>
+        <div class="pp-ex">
+          <div class="pp-prompt">
+            <span class="ttl">▼ PROMPT</span>
+            <div class="body">다음 영어 문장을 한국어로 자연스럽게 번역해줘.
+
+<span class="hl">"The quick brown fox jumps over the lazy dog."</span></div>
+          </div>
+          <div class="pp-output">
+            <span class="ttl">▶ OUTPUT</span>
+            <div class="body"><b>빠른 갈색 여우가 게으른 개를 뛰어넘는다.</b>
+
+→ 예시 없이도 정확히 번역됩니다. 모델이 이미 번역을 잘 알고 있기 때문.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-foot"><span>코딩과 AI 패러다임</span><span></span></div>
+      <div class="progress-bar"></div>
+    </section>
+
+    <!-- 패턴 2 — Few-shot -->
+    <section class="slide">
+      <div class="slide-head"><div class="brand"><span class="dot"></span>Part 2 · 프롬프트 패턴 2/5</div><span class="pill" style="background:#FFF6E5;color:#A57400">Few-shot</span></div>
+      <h2 class="title reveal">패턴 ② <span style="color:var(--brand-green-dark)">Few-shot</span> — 예시 2~5개로 가르치기</h2>
+      <div class="subtitle reveal">"이런 식으로 답해줘"의 모범답안 몇 개만 보여줘도, 출력 일관성이 극적으로 올라갑니다.</div>
+
+      <div class="pp-detail reveal">
+        <div class="pp-card">
+          <div style="display:flex;align-items:center;gap:14px"><div class="ic">📚</div><span class="lbl">Few-shot</span></div>
+          <h3>"예: A → X" 패턴 몇 개를 보여준다</h3>
+          <div class="desc">모델은 예시에서 <b>"이 작업의 규칙"</b>을 추론합니다. 카테고리·포맷·말투를 일관되게 만드는 가장 강력한 방법.</div>
+          <div class="when"><b>👍 이럴 때 좋아요</b><br/>분류 · 출력 포맷 통일 · 사내 양식 변환 · 회사 톤 유지</div>
+          <div class="effect"><b>📈 효과</b><br/>분류 정확도 60% → <b>90%+</b>로 점프하는 경우가 흔합니다</div>
+        </div>
+        <div class="pp-ex">
+          <div class="pp-prompt">
+            <span class="ttl">▼ PROMPT</span>
+            <div class="body">고객 문의를 카테고리로 분류해줘.
+
+<span class="hl">예시:</span>
+Q: "결제가 안 돼요"          → <em>결제</em>
+Q: "비밀번호 까먹었어요"     → <em>계정</em>
+Q: "배송이 늦어요"           → <em>배송</em>
+
+지금 분류할 문의:
+"카드 등록이 자꾸 실패해요"</div>
+          </div>
+          <div class="pp-output">
+            <span class="ttl">▶ OUTPUT</span>
+            <div class="body"><b>결제</b>
+
+→ 예시 3개만으로 모델은 "카테고리는 한 단어, 결제 관련 키워드는 결제로"라는 규칙을 학습합니다.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-foot"><span>코딩과 AI 패러다임</span><span></span></div>
+      <div class="progress-bar"></div>
+    </section>
+
+    <!-- 패턴 3 — Chain-of-Thought -->
+    <section class="slide">
+      <div class="slide-head"><div class="brand"><span class="dot"></span>Part 2 · 프롬프트 패턴 3/5</div><span class="pill" style="background:#FFF6E5;color:#A57400">Chain-of-Thought</span></div>
+      <h2 class="title reveal">패턴 ③ <span style="color:var(--brand-green-dark)">Chain-of-Thought</span> — 단계별로 생각하게 시키기</h2>
+      <div class="subtitle reveal">"단계별로 풀고 답해줘" 한 마디만 추가해도 — 추론·계산 정확도가 크게 올라갑니다.</div>
+
+      <div class="pp-detail reveal">
+        <div class="pp-card">
+          <div style="display:flex;align-items:center;gap:14px"><div class="ic">🧮</div><span class="lbl">CoT</span></div>
+          <h3>곧바로 답하지 말고 — 풀이 과정을 적어라</h3>
+          <div class="desc">사람도 암산보다 <b>풀이를 적으면서 풀 때</b> 정확합니다. 모델도 마찬가지. 단계별 사고를 강제하면 중간 실수가 줄어듭니다.</div>
+          <div class="when"><b>👍 이럴 때 좋아요</b><br/>계산 · 다단계 추론 · 의사결정 · 코드 디버깅 · 문제 해결</div>
+          <div class="effect"><b>📈 효과</b><br/>수학·논리 문제에서 정확도 <b>+30~40%p</b> (Anthropic·Google 연구)</div>
+        </div>
+        <div class="pp-ex">
+          <div class="pp-prompt">
+            <span class="ttl">▼ PROMPT</span>
+            <div class="body">사과 3개에 1,500원이고, 배 2개에 4,000원이다.
+사과 5개와 배 3개를 사면 총 얼마인가?
+
+<span class="hl">단계별로 풀이를 적은 뒤 마지막 줄에 정답을 써줘.</span></div>
+          </div>
+          <div class="pp-output">
+            <span class="ttl">▶ OUTPUT</span>
+            <div class="body">1) 사과 1개 가격: 1,500 ÷ 3 = 500원
+2) 배 1개 가격: 4,000 ÷ 2 = 2,000원
+3) 사과 5개: 500 × 5 = 2,500원
+4) 배 3개: 2,000 × 3 = 6,000원
+5) 합계: 2,500 + 6,000 = 8,500원
+
+답: <b>8,500원</b></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-foot"><span>코딩과 AI 패러다임</span><span></span></div>
+      <div class="progress-bar"></div>
+    </section>
+
+    <!-- 패턴 4 — Role + Context -->
+    <section class="slide">
+      <div class="slide-head"><div class="brand"><span class="dot"></span>Part 2 · 프롬프트 패턴 4/5</div><span class="pill" style="background:#FFF6E5;color:#A57400">Role + Context</span></div>
+      <h2 class="title reveal">패턴 ④ <span style="color:var(--brand-green-dark)">Role + Context</span> — 역할과 상황을 깔아주기</h2>
+      <div class="subtitle reveal">같은 질문이라도 "누가, 어디서, 무엇을 위해"를 알려주면 — 답의 톤·깊이·실용성이 완전히 달라집니다.</div>
+
+      <div class="pp-detail reveal">
+        <div class="pp-card">
+          <div style="display:flex;align-items:center;gap:14px"><div class="ic">🎭</div><span class="lbl">Role + Context</span></div>
+          <h3>"너는 누구다 + 우리 상황은 이렇다"</h3>
+          <div class="desc">모델은 <b>"어떤 답이 적절한가"</b>를 컨텍스트에서 추론합니다. 역할·청중·제약을 미리 깔면, 일반 답변이 도메인 맞춤형 답변으로 바뀝니다.</div>
+          <div class="when"><b>👍 이럴 때 좋아요</b><br/>전문 글쓰기 · 자문 · 기획서 · 톤이 중요한 응답 (CS, 영업 등)</div>
+          <div class="effect"><b>📈 효과</b><br/>"일반론" → <b>"우리 상황에 맞는 구체적 조언"</b>으로 결과 변화</div>
+        </div>
+        <div class="pp-ex">
+          <div class="pp-prompt">
+            <span class="ttl">▼ PROMPT</span>
+            <div class="body"><span class="hl">[역할]</span> 너는 10년차 보안 엔지니어다.
+<span class="hl">[상황]</span> 우리는 사용자 100만명 핀테크 스타트업,
+        결제·계좌 데이터를 다룬다.
+<span class="hl">[청중]</span> 이번 주 입사하는 신규 개발자.
+
+<em>신규 개발자가 첫 주에 반드시 지켜야 할
+보안 수칙 5가지</em>를 우선순위 순으로 정리해줘.</div>
+          </div>
+          <div class="pp-output">
+            <span class="ttl">▶ OUTPUT</span>
+            <div class="body">1) <b>운영 DB 직접 접근 금지</b> — 결제 데이터는 PII로 분리 저장, 조회는 감사 로그 남는 도구만 사용
+2) <b>로컬에 카드번호·CVV 저장 금지</b> — 디버깅 중에도 절대. 마스킹된 테스트 데이터 활용
+3) <b>2차 인증 + 하드웨어 키 의무화</b>
+4) <b>코드에 비밀키 하드코딩 금지</b> — Vault·Secret Manager 사용
+5) <b>이상 거래 시 즉시 #security 채널 보고</b>
+
+→ 일반론이 아니라, 핀테크·신규 입사자에 맞춘 답변</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-foot"><span>코딩과 AI 패러다임</span><span></span></div>
+      <div class="progress-bar"></div>
+    </section>
+
+    <!-- 패턴 5 — Self-Critique -->
+    <section class="slide">
+      <div class="slide-head"><div class="brand"><span class="dot"></span>Part 2 · 프롬프트 패턴 5/5</div><span class="pill" style="background:#FFF6E5;color:#A57400">Self-Critique</span></div>
+      <h2 class="title reveal">패턴 ⑤ <span style="color:var(--brand-green-dark)">Self-Critique</span> — 스스로 비판하고 다시 쓰게 하기</h2>
+      <div class="subtitle reveal">한 번에 좋은 답이 나오지 않을 때 — 모델 자신에게 검토를 시키면 품질이 한 번 더 올라갑니다.</div>
+
+      <div class="pp-detail reveal">
+        <div class="pp-card">
+          <div style="display:flex;align-items:center;gap:14px"><div class="ic">🔁</div><span class="lbl">Self-Critique</span></div>
+          <h3>"쓰고 → 비판하고 → 다시 써라"</h3>
+          <div class="desc">하나의 프롬프트 안에 <b>초안 작성 → 자기 비판 → 개선안</b> 3단계를 묶습니다. 사람의 셀프 리뷰와 같은 효과를 한 번의 호출로 얻을 수 있습니다.</div>
+          <div class="when"><b>👍 이럴 때 좋아요</b><br/>보고서 · 메일 · 코드 리뷰 · 마케팅 카피 · 품질이 결과를 가르는 산출물</div>
+          <div class="effect"><b>📈 효과</b><br/>1라운드 결과 대비 평균 <b>+20~30% 품질 향상</b> (가독성·구조·설득력)</div>
+        </div>
+        <div class="pp-ex">
+          <div class="pp-prompt">
+            <span class="ttl">▼ PROMPT</span>
+            <div class="body">아래 작업을 순서대로 해줘.
+
+<span class="hl">1단계.</span> 거래처에 결제 일정 지연을
+        양해 구하는 메일 초안을 써라.
+
+<span class="hl">2단계.</span> 그 초안을 직접 비판해라.
+        (약점 3가지를 솔직하게)
+
+<span class="hl">3단계.</span> 비판을 반영한 <em>개선된 최종안</em>을 써라.</div>
+          </div>
+          <div class="pp-output">
+            <span class="ttl">▶ OUTPUT (요약)</span>
+            <div class="body"><b>초안</b> · "결제 지연 안내드립니다…" (형식적)
+
+<b>자기 비판</b>
+ ① 사과가 너무 늦게 등장
+ ② 새 일정이 모호함
+ ③ 보상·CTA 누락
+
+<b>최종안</b> · "먼저 사과드립니다. 새 결제일은 11/20로 확정되었으며, 지연 보상으로…"
+
+→ 한 번의 호출로 초안과 개선안을 동시에 확보</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-foot"><span>코딩과 AI 패러다임</span><span></span></div>
+      <div class="progress-bar"></div>
+    </section>
+
+    <!-- 프롬프트 안티패턴 -->
+    <section class="slide">
+      <div class="slide-head"><div class="brand"><span class="dot"></span>Part 2 · 안티패턴</div><span class="pill" style="background:#FFF6F2;color:#A24410">Anti-patterns</span></div>
+      <h2 class="title reveal">이렇게 쓰면 <span style="color:var(--warn)">반드시 망하는</span> 5가지</h2>
+      <div class="subtitle reveal">실제로 자주 마주치는 실패 패턴 — 좌측이 흔한 실수, 우측이 개선된 형태입니다.</div>
+
+      <div class="pattern-list reveal">
+        <div class="pat-row">
+          <div class="pat-num">1</div>
+          <div class="pat-bad"><div><span class="pat-tag bad">BAD</span><b>모호한 지시</b></div><div class="pat-q">"잘 좀 정리해줘" — 무엇을·어떻게가 빠짐</div></div>
+          <div class="pat-arrow">→</div>
+          <div class="pat-good"><div><span class="pat-tag good">GOOD</span><b>구체화</b></div><div class="pat-q">"중요도 순서로 5줄 이내, JSON 배열로 출력"</div></div>
+        </div>
+        <div class="pat-row">
+          <div class="pat-num">2</div>
+          <div class="pat-bad"><div><span class="pat-tag bad">BAD</span><b>과적재 컨텍스트</b></div><div class="pat-q">관련 없는 문서까지 다 붙여넣어 핵심이 묻힘</div></div>
+          <div class="pat-arrow">→</div>
+          <div class="pat-good"><div><span class="pat-tag good">GOOD</span><b>꼭 필요한 것만</b></div><div class="pat-q">핵심 부분만 발췌·요약 후 전달, 출처 명시</div></div>
+        </div>
+        <div class="pat-row">
+          <div class="pat-num">3</div>
+          <div class="pat-bad"><div><span class="pat-tag bad">BAD</span><b>모순된 지시</b></div><div class="pat-q">"짧게 써줘 + 모든 세부사항 포함해서" — 동시에 못함</div></div>
+          <div class="pat-arrow">→</div>
+          <div class="pat-good"><div><span class="pat-tag good">GOOD</span><b>우선순위 부여</b></div><div class="pat-q">"5줄 이내, 정보 손실되더라도 짧게 우선"</div></div>
+        </div>
+        <div class="pat-row">
+          <div class="pat-num">4</div>
+          <div class="pat-bad"><div><span class="pat-tag bad">BAD</span><b>예시 없는 분류 작업</b></div><div class="pat-q">"고객 문의를 분류해줘" — 카테고리 정의 부재</div></div>
+          <div class="pat-arrow">→</div>
+          <div class="pat-good"><div><span class="pat-tag good">GOOD</span><b>Few-shot + 카테고리 정의</b></div><div class="pat-q">5개 카테고리 + 예시 3건 → 일관성 ↑</div></div>
+        </div>
+        <div class="pat-row">
+          <div class="pat-num">5</div>
+          <div class="pat-bad"><div><span class="pat-tag bad">BAD</span><b>자유 형식 출력</b></div><div class="pat-q">"답해줘" — 매번 다른 모양 → 자동화 불가</div></div>
+          <div class="pat-arrow">→</div>
+          <div class="pat-good"><div><span class="pat-tag good">GOOD</span><b>JSON 스키마 강제</b></div><div class="pat-q">"{ result, confidence, sources } 형식으로만"</div></div>
+        </div>
+      </div>
+
+      <div class="slide-foot"><span>코딩과 AI 패러다임</span><span></span></div>
+      <div class="progress-bar"></div>
+    </section>
+
+    <!-- 퀴즈 -->
+    <section class="slide">
+      <div class="slide-head"><div class="brand"><span class="dot"></span>Part 2 · 잠깐, 퀴즈</div><span class="pill">Quiz</span></div>
+      <h2 class="title reveal">이 프롬프트의 <span style="color:var(--warn)">가장 큰 문제</span>는?</h2>
+      <div class="subtitle reveal">아래 4개 보기 중 하나를 골라 클릭해 보세요.</div>
+
+      <div class="quiz reveal" id="quizRoot">
+        <div class="quiz-q"><span class="lbl">▼ PROMPT</span>"우리 회사 지난 분기 모든 회의록을 다 읽고, 알아서 잘 정리해서 보기 좋게 만들어줘. 빠뜨리지 말고 자세히 다 적어줘. 그리고 짧게 핵심만 알려줘."</div>
+        <div class="quiz-opts">
+          <button class="quiz-opt" data-q="0"><span class="mk">A</span>맥락(회사 상황)이 충분하지 않다</button>
+          <button class="quiz-opt" data-q="1"><span class="mk">B</span>"자세히"와 "짧게"가 모순되며, 출력 형식이 정의되어 있지 않다</button>
+          <button class="quiz-opt" data-q="2"><span class="mk">C</span>역할(Role) 부여가 빠져 있다</button>
+          <button class="quiz-opt" data-q="3"><span class="mk">D</span>예시(Few-shot)가 없다</button>
+        </div>
+        <div class="quiz-explain" id="quizExplain"><b>정답 — B.</b> "자세히"와 "짧게"는 동시에 만족할 수 없는 모순 지시입니다. 게다가 출력 형식(표·JSON·마크다운)도 정의되어 있지 않아 매번 다른 모양으로 답이 나옵니다. A·C·D도 개선 여지지만, 모순과 형식 부재는 답을 <b>자동화 불가능</b>하게 만드는 가장 치명적인 결함입니다.</div>
+      </div>
+
+      <div class="slide-foot"><span>코딩과 AI 패러다임</span><span></span></div>
+      <div class="progress-bar"></div>
+    </section>
+
+    <!-- 도구 사용 · MCP · Skills -->
+    <section class="slide">
+      <div class="slide-head"><div class="brand"><span class="dot"></span>Part 2 · 도구 사용</div><span class="pill" style="background:#E5F1FF;color:#1A5FC4">Tool Use · MCP · Skills</span></div>
+      <h2 class="title reveal">AI에게 <span style="color:var(--brand-green-dark)">손·발</span>과 <span style="color:var(--brand-green-dark)">노하우</span>를 더하기</h2>
+      <div class="subtitle reveal">모델은 글만 만들 뿐 — 실제 세계와 닿으려면 <b>도구(MCP)</b>가, 일을 잘 해내려면 <b>절차(Skills)</b>가 필요합니다.</div>
+
+      <div class="harness reveal" style="margin-top:14px">
+        <div class="h-layer"><div class="lbl">READ</div><div class="name">🔎 정보 조회</div><div class="ex">웹 검색 · 사내 문서 · DB 쿼리 · 캘린더 읽기</div></div>
+        <div class="h-layer"><div class="lbl">WRITE</div><div class="name">✍️ 결과 기록</div><div class="ex">파일 작성 · 슬랙 메시지 · 이메일 · 노션 업데이트</div></div>
+        <div class="h-layer"><div class="lbl">EXECUTE</div><div class="name">⚙️ 행동 실행</div><div class="ex">코드 실행 · API 호출 · 결제 처리 · 배포 트리거</div></div>
+      </div>
+
+      <div class="two-col reveal" style="margin-top:16px;gap:16px">
+        <div class="card green" style="padding:18px">
+          <h3 style="color:var(--brand-green-dark);margin-bottom:8px;font-size:18px">🌉 MCP — Model Context Protocol</h3>
+          <div style="font-size:14px;color:var(--ink-soft);line-height:1.55;word-break:keep-all">Anthropic이 만든 <b>"AI에게 도구를 연결하는 표준"</b>. USB-C처럼, MCP 서버 하나만 만들면 Claude·Cursor 등 모든 클라이언트에서 같은 도구를 쓸 수 있습니다.<br/><br/><b style="color:var(--brand-green-dark)">→ 무엇을 줄까?</b> 외부 시스템·데이터·API 연결</div>
+        </div>
+        <div class="card" style="padding:18px;border:2px solid var(--brand-green-soft);background:#FBFFFD">
+          <h3 style="color:var(--brand-green-dark);margin-bottom:8px;font-size:18px">📚 Skills — 작업 절차 패키지</h3>
+          <div style="font-size:14px;color:var(--ink-soft);line-height:1.55;word-break:keep-all">"이런 일은 이렇게 해라"라는 <b>절차·체크리스트·예시 묶음</b>을 폴더로 만들어 두면, AI가 상황에 맞게 자동 호출해 사용합니다. 사내 베테랑의 노하우를 그대로 재사용 가능.<br/><br/><b style="color:var(--brand-green-dark)">→ 어떻게 할까?</b> 회사·팀의 일하는 방식을 학습</div>
+        </div>
+      </div>
+
+      <div class="reveal" style="margin-top:14px;padding:12px 18px;background:var(--bg-soft);border-radius:10px;font-size:13.5px;color:var(--ink-soft);line-height:1.6;word-break:keep-all;border-left:4px solid var(--brand-green)">
+        <b style="color:var(--brand-green-dark)">한 줄 비교</b> &nbsp;·&nbsp;
+        MCP는 <b>"무엇과 연결할 수 있는가"</b>(능력 확장) — Skills는 <b>"어떻게 일해야 하는가"</b>(절차 확장).
+        둘이 합쳐지면 AI는 사내 시스템을 다루면서 우리 회사 방식대로 일하게 됩니다.
+      </div>
+
+      <div class="slide-foot"><span>코딩과 AI 패러다임</span><span></span></div>
+      <div class="progress-bar"></div>
+    </section>
+
+    <!-- 컨텍스트 엔지니어링 · RAG -->
+    <section class="slide">
+      <div class="slide-head"><div class="brand"><span class="dot"></span>Part 2 · 컨텍스트</div><span class="pill" style="background:#E5F1FF;color:#1A5FC4">Context · RAG</span></div>
+      <h2 class="title reveal">AI에게 <span style="color:var(--brand-green-dark)">"무엇을 보여줄지"</span>가 절반 이상을 결정합니다</h2>
+      <div class="subtitle reveal">컨텍스트 윈도우는 한정 자원 — 적절한 정보를 적시에 주입하는 설계가 곧 품질입니다.</div>
+
+      <div class="step-list reveal" style="margin-top:14px">
+        <div class="step"><div class="step-n">1</div><div><div class="step-t">RAG (Retrieval-Augmented Generation)</div><div class="step-d">사내 문서·DB를 벡터로 인덱싱 → 질문이 들어오면 관련 조각만 검색해 컨텍스트에 끼워 넣음. <b>"AI에게 회사 위키를 통째로가 아니라, 필요한 페이지만"</b></div></div></div>
+        <div class="step"><div class="step-n">2</div><div><div class="step-t">메모리 (Memory)</div><div class="step-d">긴 대화·작업 흐름에서 중요한 사실을 별도 저장 → 다음 호출에 다시 주입. 예: "이 사용자는 React 베테랑이고 한국어 선호" 같은 프로필.</div></div></div>
+        <div class="step"><div class="step-n">3</div><div><div class="step-t">컨텍스트 압축 / 캐싱</div><div class="step-d">반복되는 시스템 프롬프트·도구 정의는 <b>프롬프트 캐싱</b>으로 90% 비용 절감. 길어진 대화는 요약본으로 압축해서 다시 주입.</div></div></div>
+      </div>
+
+      <div class="card green reveal" style="margin-top:14px">
+        <div style="display:flex;gap:14px;align-items:center"><div style="font-size:28px">📐</div><div style="font-size:15px;color:var(--ink-soft);line-height:1.6;word-break:keep-all"><b>"컨텍스트 엔지니어링"</b>이라는 새 개념이 부상한 이유 — 모델이 좋아져도, 무엇을 보여줄지 잘못하면 결과가 나빠지기 때문입니다.</div></div>
+      </div>
+
+      <div class="slide-foot"><span>코딩과 AI 패러다임</span><span></span></div>
+      <div class="progress-bar"></div>
+    </section>
+
+    <!-- 12. Agentic Engineering -->
+    <section class="slide">
+      <div class="slide-head"><div class="brand"><span class="dot"></span>Part 2 · 2세대</div><span class="pill" style="background:#E5F1FF;color:#1A5FC4">Agentic Engineering</span></div>
+      <h2 class="title reveal"><span style="color:var(--brand-green-dark)">역할이 다른 에이전트들</span>이 — 한 팀처럼 협업하게</h2>
+      <div class="subtitle reveal">앞서 본 <b>도구(MCP)</b>와 <b>컨텍스트</b>를 손에 든 에이전트들이 — 역할을 나눠 협업합니다. <b>역할별 조합(팀) × 각자의 자율 루프(개인)</b>.</div>
+
+      <div class="two-col reveal" style="margin-top:14px;grid-template-columns:1.25fr 1fr;gap:18px">
+        <div style="display:flex;flex-direction:column;min-height:0">
+          <div style="font-size:14px;font-weight:800;color:var(--brand-green-dark);letter-spacing:.06em;margin-bottom:8px">🤝 1️⃣ 역할 분담 — 멀티 에이전트 팀 <span style="font-size:11px;color:var(--ink-mute);font-weight:600;letter-spacing:.04em">· 작동 흐름 자동 재생</span></div>
+          <div class="team-flow animated">
+            <div class="team-pm">🎯 PM 에이전트<small>작업 분해 · 분배 · 통합 · 품질 관리</small></div>
+            <div class="team-arrow split">↓ 분배 ↓</div>
+            <div class="team-row">
+              <div class="team-agent"><div class="role">📋 기획</div>요구사항 정리<small>스펙 · 수용 기준</small><div class="work-dots"><span></span><span></span><span></span></div></div>
+              <div class="team-agent"><div class="role">💻 개발</div>실제 구현<small>코드 · 도구 호출</small><div class="work-dots"><span></span><span></span><span></span></div></div>
+              <div class="team-agent"><div class="role">🔎 리뷰</div>품질 검증<small>버그 · 보안 점검</small><div class="work-dots"><span></span><span></span><span></span></div></div>
+            </div>
+            <div class="team-arrow merge">↑ 통합 ↑</div>
+            <div class="team-merge">PM이 결과를 모아 사용자에게 전달</div>
+            <div class="stage-strip">
+              <span class="stage-pill s1"><span class="num">1</span>PM이 작업을 받아 역할별로 분해합니다</span>
+              <span class="stage-pill s2"><span class="num">2</span>기획·개발·리뷰가 동시에 작업 중</span>
+              <span class="stage-pill s3"><span class="num">3</span>결과를 통합 → 사용자에게 전달</span>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;min-height:0">
+          <div style="font-size:14px;font-weight:800;color:var(--brand-green-dark);letter-spacing:.06em;margin-bottom:8px">🔄 2️⃣ 각 에이전트의 내부 = 자율 루프</div>
+          <div class="inner-loop">
+            <div class="il-step"><div class="n">1</div>🎯 목표 수신<small>"X를 해줘"</small></div>
+            <div class="il-arrow">↓</div>
+            <div class="il-step"><div class="n">2</div>🧠 판단·계획<small>컨텍스트로 추론</small></div>
+            <div class="il-arrow">↓</div>
+            <div class="il-step"><div class="n">3</div>🛠 도구 실행<small>MCP · API · 코드</small></div>
+            <div class="il-arrow">↓</div>
+            <div class="il-step"><div class="n">4</div>📊 결과 관찰·자기수정<small>틀렸으면 다시</small></div>
+            <div class="il-back">↑ 결과를 보고 다시 판단으로 (루프) ↑</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card green reveal" style="margin-top:12px;padding:12px 18px">
+        <div style="display:flex;gap:14px;align-items:flex-start;font-size:14px;color:var(--ink-soft);line-height:1.6;word-break:keep-all">
+          <div style="font-size:22px;flex-shrink:0">💡</div>
+          <div><b style="color:var(--brand-green-dark)">실제 예시 — "신규 기능 추가해줘"</b> &nbsp;·&nbsp;
+          <b>PM</b>이 요구사항을 받아 작업을 쪼갠다 → <b>기획 에이전트</b>가 스펙을 정리 → <b>개발 에이전트</b>가 자기 루프로 코드 작성·도구 호출 → <b>리뷰 에이전트</b>가 검증 후 피드백 → <b>PM</b>이 통합. 각자가 자기 영역의 루프를 돌고, 팀으로 결과를 내놓습니다 — 우리가 지금 이렇게 일하고 있죠.</div>
+        </div>
+      </div>
+
+      <div class="slide-foot"><span>코딩과 AI 패러다임</span><span></span></div>
+      <div class="progress-bar"></div>
+    </section>
+
+    <!-- 13. Harness Engineering -->
+    <section class="slide">
+      <div class="slide-head"><div class="brand"><span class="dot"></span>Part 2 · 3세대</div><span class="pill" style="background:#E8F8EE;color:#02A34A">Harness Engineering</span></div>
+      <h2 class="title reveal">에이전트가 <span style="color:var(--brand-green-dark)">잘 일할 수 있는 환경</span> 자체를 설계한다</h2>
+      <div class="subtitle reveal">하네스(Harness)는 마구(馬具) — 에이전트라는 말(馬)이 폭주하지 않고 제 길로 달리도록 잡아주는 안장과 고삐.</div>
+
+      <div class="harness reveal" style="margin-top:14px">
+        <div class="h-layer"><div class="lbl">CONTEXT LAYER</div><div class="name">📚 컨텍스트 관리</div><div class="ex">필요한 정보만 적시에 주입 · 메모리 압축 · 캐싱</div></div>
+        <div class="h-layer"><div class="lbl">TOOL LAYER</div><div class="name">🛠 도구 카탈로그</div><div class="ex">권한 분리된 도구 · 안전한 실행 환경 · 로깅</div></div>
+        <div class="h-layer"><div class="lbl">POLICY LAYER</div><div class="name">🛡 가드레일</div><div class="ex">출력 검증 · 리트라이 · 휴먼-인-더-루프</div></div>
+        <div class="h-layer"><div class="lbl">ORCHESTRATION</div><div class="name">🎼 오케스트레이션</div><div class="ex">서브에이전트 분배 · 병렬 처리 · 라우팅</div></div>
+        <div class="h-layer"><div class="lbl">EVAL LAYER</div><div class="name">📈 평가 · 관찰</div><div class="ex">평가 셋 · 추적(trace) · A/B 비교</div></div>
+        <div class="h-layer"><div class="lbl">EXPERIENCE</div><div class="name">🧑 사용자 경험</div><div class="ex">실시간 피드백 · 작업 승인 · 결과 공유</div></div>
+      </div>
+
+      <div class="card green reveal" style="margin-top:20px">
+        <div style="display:flex;gap:14px;align-items:flex-start">
+          <div style="font-size:30px">🏎️</div>
+          <div style="color:var(--ink-soft);font-size:16px;line-height:1.6;word-break:keep-all">
+            <b>실제 예시 — Claude Code · Cursor · Copilot</b><br/>
+            단순한 챗봇이 아니라, "에이전트가 안전하게 코드를 읽고·실행하고·되돌릴 수 있도록" 도구·정책·UI를 통째로 설계한 하네스입니다. 사용자가 보는 것은 채팅창이지만, 그 뒤에는 수십 개의 도구·검증·롤백 로직이 동작합니다.
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-foot"><span>코딩과 AI 패러다임</span><span></span></div>
+      <div class="progress-bar"></div>
+    </section>
+
+    <!-- 평가(Evals) -->
+    <section class="slide">
+      <div class="slide-head"><div class="brand"><span class="dot"></span>Part 2 · 평가(Evals)</div><span class="pill" style="background:#E8F8EE;color:#02A34A">Eval</span></div>
+      <h2 class="title reveal">평가가 없는 AI는 — <span style="color:var(--warn)">운에 맡긴 서비스</span>입니다</h2>
+      <div class="subtitle reveal">"좋아진 것 같다"는 느낌이 아니라, <b>테스트로 측정</b>해야 진짜 개선이 가능합니다. (= AI판 TDD)</div>
+
+      <div class="reveal" style="margin-top:12px;padding:14px 18px;background:#F2FBF6;border-left:4px solid var(--brand-green);border-radius:10px;font-size:14.5px;color:var(--ink-soft);line-height:1.6;word-break:keep-all">
+        <b style="color:var(--brand-green-dark)">🧪 TDD 관점으로 보면</b> &nbsp;·&nbsp;
+        전통 SW에서 <b>테스트 코드</b>가 함수의 정답을 잡아주듯, AI에게는 <b>평가셋(Eval Set)</b>이 같은 역할을 합니다.
+        <b>"먼저 기대 출력을 적고 → 시스템을 그 기대에 맞춘다"</b> — 순서가 곧 TDD 그 자체.
+      </div>
+
+      <div class="step-list reveal" style="margin-top:12px">
+        <div class="step"><div class="step-n">1</div><div><div class="step-t">평가셋(Eval Set) 만들기 <span style="color:var(--brand-green-dark);font-size:13px;font-weight:700">— = 테스트 케이스 작성</span></div><div class="step-d">대표적인 입력 50~200개 + 정답(또는 좋은 답의 기준)을 먼저 적습니다. <b>코드의 단위 테스트</b>를 먼저 짜는 것과 같습니다. 작아도 좋습니다 — 없는 것보다 1000배 낫습니다.</div></div></div>
+        <div class="step"><div class="step-n">2</div><div><div class="step-t">변경 시마다 회귀 테스트 <span style="color:var(--brand-green-dark);font-size:13px;font-weight:700">— = CI 파이프라인</span></div><div class="step-d">프롬프트·모델·도구를 바꿀 때마다 평가셋 전체 재실행. 점수가 떨어지면 <b>배포 차단</b>. "어제는 됐는데 오늘 안 되는" 사고를 막는 건 결국 자동화된 테스트뿐입니다.</div></div></div>
+        <div class="step"><div class="step-n">3</div><div><div class="step-t">자동 채점 + 사람 검수 병행 <span style="color:var(--brand-green-dark);font-size:13px;font-weight:700">— = 단위/통합 테스트</span></div><div class="step-d">간단한 건 LLM이 채점(LLM-as-judge), 핵심은 사람이 직접. 단위 테스트로 빠르게 회귀를 잡고, 통합 테스트로 사용자 경험을 검증하는 구조 그대로입니다.</div></div></div>
+      </div>
+
+      <div class="card green reveal" style="margin-top:12px">
+        <div style="display:flex;gap:14px;align-items:center"><div style="font-size:28px">📊</div><div style="font-size:14.5px;color:var(--ink-soft);line-height:1.6;word-break:keep-all"><b>현실적 시작점</b> — 거창한 평가 시스템 만들기 전에, 스프레드시트에 <b>입력 30개 + 기대 답</b>을 적고 매주 한 번 돌리세요. 이게 곧 "AI 프로젝트의 첫 테스트 코드"입니다. 그것만으로도 운영 품질이 즉시 달라집니다.</div></div>
+      </div>
+
+      <div class="slide-foot"><span>코딩과 AI 패러다임</span><span></span></div>
+      <div class="progress-bar"></div>
+    </section>
+
+    <!-- 14. Before/After 비교 -->
+    <section class="slide">
+      <div class="slide-head"><div class="brand"><span class="dot"></span>Part 2 · Before vs After</div><span class="pill">Quality</span></div>
+      <h2 class="title reveal">동일한 작업, <span style="color:var(--brand-green-dark)">사용 전후의 차이</span></h2>
+      <div class="subtitle reveal">예제: "지난 분기 고객 문의를 분류·요약하고, 우선순위 TOP 10을 보고하라"</div>
+
+      <div style="display:flex;gap:6px;margin-top:14px;flex-shrink:0" class="reveal">
+        <button class="cmp-tab pill" data-cmp="prompt" style="cursor:pointer;border:0">프롬프트 1세대</button>
+        <button class="cmp-tab pill" data-cmp="agent" style="cursor:pointer">에이전틱 2세대</button>
+        <button class="cmp-tab pill" data-cmp="harness" style="cursor:pointer">하네스 3세대</button>
+      </div>
+
+      <div class="compare-wrap reveal" id="cmpWrap"></div>
+
+      <div class="metric-row reveal" id="cmpMetrics"></div>
+
+      <div class="slide-foot"><span>코딩과 AI 패러다임</span><span></span></div>
+      <div class="progress-bar"></div>
+    </section>
+
+    <!-- 사례 연구 -->
+    <section class="slide">
+      <div class="slide-head"><div class="brand"><span class="dot"></span>Part 2 · 사례 연구</div><span class="pill">Case Studies</span></div>
+      <h2 class="title reveal">실제 회사들의 — <span style="color:var(--brand-green-dark)">성공</span>과 <span style="color:var(--warn)">실패</span></h2>
+      <div class="subtitle reveal">교과서가 아닌, 시장에서 검증된 사례에서 배웁니다.</div>
+
+      <div class="case-grid reveal">
+        <div class="case-col">
+          <div class="case-h win">✅ 성공 사례</div>
+          <div class="case-card win"><div class="who">Cursor</div><div class="what">"AI 코드 에디터" 카테고리 자체를 만들어냄. 모델이 아닌 <b>하네스(에디터·도구·UX)</b>를 잘 설계해 1년 만에 ARR $100M 달성.</div></div>
+          <div class="case-card win"><div class="who">Klarna</div><div class="what">고객지원 챗봇이 700명분 업무 처리. 평균 응답시간 2분 → 즉시. 핵심은 <b>잘 큐레이팅된 컨텍스트와 평가</b>.</div></div>
+          <div class="case-card win"><div class="who">GitHub Copilot</div><div class="what">코드 자동완성으로 개발자 생산성 +55%. <b>"한 줄 단위 제안"</b>이라는 좁은 문제 정의가 성공 비결.</div></div>
+        </div>
+        <div class="case-col">
+          <div class="case-h lose">⚠️ 교훈을 남긴 사례</div>
+          <div class="case-card lose"><div class="who">Air Canada 챗봇 소송</div><div class="what">챗봇이 잘못된 환불 정책을 안내 → 법원이 항공사 책임 인정. <b>가드레일·검증 없이 챗봇을 배포한 결과</b>.</div></div>
+          <div class="case-card lose"><div class="who">McDonald's 드라이브스루</div><div class="what">3년 시범 후 IBM과의 AI 주문 시스템 종료. 시끄러운 환경·다국어 한계. <b>"엣지 케이스에서 무너지면 0점"</b>.</div></div>
+          <div class="case-card lose"><div class="who">초기 기업 챗봇들 (다수)</div><div class="what">"GPT 한 번 호출 = 서비스" 시도. 환각·일관성 부재로 신뢰 잃고 철수. <b>하네스 부재가 공통 원인</b>.</div></div>
+        </div>
+      </div>
+
+      <div class="slide-foot"><span>코딩과 AI 패러다임</span><span></span></div>
+      <div class="progress-bar"></div>
+    </section>
+
+    <!-- 비용 · 성능 균형 -->
+    <section class="slide">
+      <div class="slide-head"><div class="brand"><span class="dot"></span>Part 2 · 운영 경제학</div><span class="pill">Cost</span></div>
+      <h2 class="title reveal">같은 결과를 — <span style="color:var(--brand-green-dark)">10분의 1 비용</span>으로</h2>
+      <div class="subtitle reveal">AI 서비스의 손익은 모델 선택이 아니라 "어떻게 쓰는가"에서 갈립니다.</div>
+
+      <div class="why-grid reveal" style="margin-top:24px">
+        <div class="why"><div class="ic">🎚</div><h4>모델 라우팅</h4><p>쉬운 작업 = Haiku, 보통 = Sonnet, 어려운 작업 = Opus. 분기 처리만 잘해도 평균 비용이 70% 줄어듭니다.</p></div>
+        <div class="why"><div class="ic">💾</div><h4>프롬프트 캐싱</h4><p>반복되는 시스템 프롬프트·문서를 캐싱. 같은 컨텍스트 두 번째 호출부터 90% 비용·지연 절감.</p></div>
+        <div class="why"><div class="ic">📦</div><h4>배치 처리</h4><p>실시간 답이 필요 없는 작업은 Batch API로. 단가가 절반 — 야간 일괄 처리에 효율적.</p></div>
+        <div class="why"><div class="ic">✂️</div><h4>컨텍스트 압축</h4><p>긴 문서는 요약 후 사용. 토큰 1만 → 1천으로 줄이면 비용·속도 모두 10배 ↑.</p></div>
+        <div class="why"><div class="ic">🚦</div><h4>가드레일 우선</h4><p>잘못된 요청은 모델 호출 전에 차단. 비용도 아끼고 안전성도 ↑ — 정규식·간단 분류기로도 충분.</p></div>
+        <div class="why"><div class="ic">📈</div><h4>지속적 측정</h4><p>호출당 비용·성공률·지연을 대시보드로 보지 않으면 새는 비용을 알아챌 수 없습니다.</p></div>
+      </div>
+
+      <div class="slide-foot"><span>코딩과 AI 패러다임</span><span></span></div>
+      <div class="progress-bar"></div>
+    </section>
+
+    <!-- 다음 패러다임 -->
+    <section class="slide">
+      <div class="slide-head"><div class="brand"><span class="dot"></span>Part 2 · 다음 패러다임</div><span class="pill">What's next</span></div>
+      <h2 class="title reveal">멀티 에이전트는 — <span style="color:var(--brand-green-dark)">이미 우리 곁에</span> 와 있습니다</h2>
+      <div class="subtitle reveal">우리도 지금 PM·디자이너·개발자 에이전트로 일을 나눠서 진행하고 있죠. 다음 흐름은 "협업의 자동화"입니다.</div>
+
+      <div class="harness reveal" style="margin-top:18px;grid-template-columns:repeat(3,1fr)">
+        <div class="h-layer" style="border-color:var(--brand-green);background:#F2FBF6"><div class="lbl" style="color:var(--brand-green-dark)">NOW · 이미 도래</div><div class="name">🤝 멀티 에이전트 팀</div><div class="ex">Claude Code 서브에이전트, PM·디자이너·개발자 역할 분담 — <b>오늘 우리가 쓰는 방식</b></div></div>
+        <div class="h-layer" style="border-color:var(--brand-green);background:#F2FBF6"><div class="lbl" style="color:var(--brand-green-dark)">NOW · 이미 도래</div><div class="name">🌐 표준 도구 생태계</div><div class="ex">MCP가 사실상 표준으로 자리. 사내 시스템 연결도 빠르게 확산 중</div></div>
+        <div class="h-layer" style="border-color:var(--brand-green);background:#F2FBF6"><div class="lbl" style="color:var(--brand-green-dark)">NOW · 이미 도래</div><div class="name">📚 Skills · 절차 패키지</div><div class="ex">팀의 일하는 방식을 그대로 AI에게 — 베테랑 노하우의 재사용</div></div>
+        <div class="h-layer"><div class="lbl">NEAR · 6~12개월</div><div class="name">🏠 로컬·온디바이스</div><div class="ex">개인용 에이전트가 데스크탑·폰에서 직접 — 프라이버시·지연 모두 해결</div></div>
+        <div class="h-layer"><div class="lbl">NEAR · 6~12개월</div><div class="name">⚙️ 자율 워크플로우</div><div class="ex">"이 일을 매주 처리해줘" — 한 번 위임하면 알아서 반복·진화</div></div>
+        <div class="h-layer"><div class="lbl">MID · 1~2년</div><div class="name">🔄 자기 개선 시스템</div><div class="ex">자기 평가 → 자기 수정 루프. 사람이 매번 튜닝하지 않아도 향상</div></div>
+      </div>
+
+      <div class="card green reveal" style="margin-top:14px">
+        <div style="display:flex;gap:14px;align-items:center"><div style="font-size:28px">🧭</div><div style="font-size:15px;color:var(--ink-soft);line-height:1.6;word-break:keep-all">패러다임 전환은 <b>"미래의 일"이 아니라 이미 진행 중</b>입니다. <b>"한 모델이 다 한다"</b>가 아니라 <b>"여러 에이전트가 하네스 위에서 협업"</b> — 우리는 이미 그 위에 서 있고, 다음 단계는 그 협업을 더 자동화하는 일입니다.</div></div>
+      </div>
+
+      <div class="slide-foot"><span>코딩과 AI 패러다임</span><span></span></div>
+      <div class="progress-bar"></div>
+    </section>
+
+    <!-- 15. Closing -->
+    <section class="slide closing">
+      <div class="reveal" style="font-size:22px;color:#7BE5A6;font-weight:700;letter-spacing:.1em">THANK YOU</div>
+      <h1 class="reveal" style="margin-top:18px">코딩은 세상을 데이터로 옮기는 일,<br/>AI는 그 데이터를 함께 일하는 동료입니다.</h1>
+      <div class="subtitle reveal">우리는 더 이상 모델을 "쓰는" 사람이 아니라, 모델이 일할 환경을 <b style="color:#fff">"설계하는"</b> 사람이 됩니다.</div>
+      <span class="pill reveal">Q &amp; A</span>
+    </section>
+
+  </div>
+</div>
+
+<div class="nav">
+  <button id="prev" aria-label="이전">‹</button>
+  <span class="pos"><b id="cur">1</b> / <span id="total">15</span></span>
+  <button id="next" aria-label="다음">›</button>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  document.getElementById('total').textContent = total;
+  let idx = 0;
+
+  function go(n, opts){
+    const skipHash = opts && opts.skipHash;
+    idx = Math.max(0, Math.min(total-1, n));
+    slides.forEach((s,i)=>{
+      s.classList.toggle('active', i===idx);
+      s.classList.toggle('prev', i<idx);
+      const bar = s.querySelector('.progress-bar');
+      if(bar) bar.style.width = ((idx+1)/total*100)+'%';
+    });
+    document.getElementById('cur').textContent = (idx+1);
+    if(!skipHash){
+      const wanted = '#' + (idx+1);
+      if(location.hash !== wanted){
+        history.replaceState(null, '', wanted);
+      }
+    }
+  }
+
+  function readHashIdx(){
+    const m = (location.hash || '').match(/^#(\d+)$/);
+    if(!m) return null;
+    const n = parseInt(m[1], 10) - 1;
+    if(isNaN(n) || n < 0 || n >= total) return null;
+    return n;
+  }
+
+  document.getElementById('prev').onclick = ()=>go(idx-1);
+  document.getElementById('next').onclick = ()=>go(idx+1);
+  window.addEventListener('keydown', e=>{
+    if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' ') go(idx+1);
+    else if(e.key==='ArrowLeft'||e.key==='PageUp') go(idx-1);
+    else if(e.key==='Home') go(0);
+    else if(e.key==='End') go(total-1);
+    else if(e.key==='f' || e.key==='F'){
+      if(!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+  });
+  document.querySelectorAll('[data-go]').forEach(el=>{
+    el.addEventListener('click',()=>go(parseInt(el.dataset.go,10)));
+  });
+  window.addEventListener('hashchange', ()=>{
+    const n = readHashIdx();
+    if(n !== null && n !== idx) go(n, {skipHash:true});
+  });
+
+  // ---- concepts ----
+  const conceptText = {
+    var: {
+      desc: '<b>변수(Variable)</b>는 값을 담는 "이름표 붙은 상자"입니다. 한 번 만들어 두면 어디서나 그 이름으로 꺼내 쓸 수 있고, 새 값을 다시 담을 수도 있습니다.',
+      code: '<span class="c">// 변수 — 이름 + 타입 + 값</span>\n<span class="k">let</span> price: <span class="t">number</span> = <span class="n">4500</span>;\n<span class="k">let</span> name:  <span class="t">string</span> = <span class="s">"김현철"</span>;\n<span class="k">const</span> isMember: <span class="t">boolean</span> = <span class="n">true</span>;\n\n<span class="c">// 같은 변수에 다른 값을 다시 담을 수 있다</span>\nprice = <span class="n">5000</span>;',
+      anim: '<div class="anim-title">실제 동작 — 같은 상자, 바뀌는 값</div>\n<div class="var-anim">\n  <div class="var-tag">price : number</div>\n  <div class="var-bucket">\n    <span class="vv">4500</span>\n    <span class="vv">5000</span>\n  </div>\n  <div class="var-hint">변수 이름은 그대로, 값만 바뀐다</div>\n</div>'
+    },
+    func: {
+      desc: '<b>함수(Function)</b>는 입력을 받아 어떤 일을 하고 결과를 돌려주는 "작업 단위"입니다. 한 번 정의해두면 어디서나 호출해 재사용할 수 있습니다.',
+      code: '<span class="c">// 함수 — 입력 → 처리 → 출력</span>\n<span class="k">function</span> <span class="fn">discount</span>(\n  price: <span class="t">number</span>,\n  rate:  <span class="t">number</span>\n): <span class="t">number</span> {\n  <span class="k">return</span> price - price * rate;\n}\n\n<span class="k">const</span> final = <span class="fn">discount</span>(<span class="n">10000</span>, <span class="n">0.2</span>);\n<span class="c">// final = 8000</span>',
+      anim: '<div class="anim-title">실제 동작 — 입력이 들어가고, 결과가 나온다</div>\n<div class="fn-anim">\n  <div class="fn-row">\n    <div class="fn-input"><span>10000</span><span>0.2</span></div>\n    <div class="fn-flow"></div>\n    <div class="fn-box">discount()</div>\n    <div class="fn-flow"></div>\n    <div class="fn-output">8000</div>\n  </div>\n</div>'
+    },
+    class: {
+      desc: '<b>클래스(Class)</b>는 같은 종류의 사물을 찍어내기 위한 "설계도"입니다. <b>속성(데이터)</b>과 <b>메서드(행동)</b>를 한 묶음으로 정의합니다.',
+      code: '<span class="c">// 클래스 — 객체의 설계도</span>\n<span class="k">class</span> <span class="fn">Customer</span> {\n  <span class="k">constructor</span>(\n    <span class="k">public</span> name:  <span class="t">string</span>,\n    <span class="k">public</span> grade: <span class="s">"VIP"</span> | <span class="s">"일반"</span>\n  ) {}\n\n  <span class="fn">greet</span>(): <span class="t">string</span> {\n    <span class="k">return</span> <span class="s">`안녕하세요, ${this.name}님!`</span>;\n  }\n}',
+      anim: '<div class="anim-title">실제 동작 — 설계도로 객체를 찍어낸다</div>\n<div class="class-anim">\n  <div class="blueprint">\n    <div class="bp-h">📐 Customer</div>\n    <div class="bp-row">name : string</div>\n    <div class="bp-row">grade: string</div>\n    <div class="bp-row m">greet()</div>\n  </div>\n  <div class="bp-stamp">new()</div>\n  <div class="instances">\n    <div class="inst i1">customer1<small>김현철 · VIP</small></div>\n    <div class="inst i2">customer2<small>이영희 · 일반</small></div>\n  </div>\n</div>'
+    },
+    obj: {
+      desc: '<b>객체(Object)</b>는 클래스 설계도로 만들어진 "실제 사물"입니다. 속성을 들여다보거나 메서드를 호출해 일을 시킬 수 있습니다.',
+      code: '<span class="c">// 객체 — 클래스의 인스턴스</span>\n<span class="k">const</span> customer1 = <span class="k">new</span> <span class="fn">Customer</span>(<span class="s">"김현철"</span>, <span class="s">"VIP"</span>);\n<span class="k">const</span> customer2 = <span class="k">new</span> <span class="fn">Customer</span>(<span class="s">"이영희"</span>, <span class="s">"일반"</span>);\n\n<span class="c">// 속성 접근</span>\ncustomer1.<span class="prop">grade</span>;       <span class="c">// "VIP"</span>\n\n<span class="c">// 메서드 호출 (행동)</span>\ncustomer1.<span class="fn">greet</span>();\n<span class="c">// → "안녕하세요, 김현철님!"</span>',
+      anim: '<div class="anim-title">실제 동작 — 객체에게 일을 시킨다</div>\n<div class="obj-anim">\n  <div class="obj-card">\n    <div class="oc-h">customer1</div>\n    <div class="oc-row">name: <b>"김현철"</b></div>\n    <div class="oc-row">grade: <b>"VIP"</b></div>\n    <div class="oc-method">.greet() ▶</div>\n  </div>\n  <div class="obj-bubble">"안녕하세요,<br/>김현철님!"</div>\n</div>'
+    }
+  };
+  const detail = document.getElementById('conceptDetail');
+  function setConcept(key){
+    document.querySelectorAll('.concept').forEach(c=>c.classList.toggle('active', c.dataset.concept===key));
+    const d = conceptText[key];
+    detail.innerHTML = `
+      <div class="cd-left">
+        <div class="cd-desc">${d.desc}</div>
+        <pre class="cd-code">${d.code}</pre>
+      </div>
+      <div class="cd-right">${d.anim}</div>
+    `;
+  }
+  document.querySelectorAll('.concept').forEach(c=>c.addEventListener('click',()=>setConcept(c.dataset.concept)));
+  setConcept('var');
+
+  // ---- timeline auto-cycle when on slide 10 ----
+  let tlTimer=null;
+  function startTimelineCycle(){
+    if(tlTimer) return;
+    let i=0;
+    tlTimer = setInterval(()=>{
+      const steps=document.querySelectorAll('.tl-step');
+      steps.forEach((s,k)=>s.classList.toggle('active', k===i));
+      i=(i+1)%3;
+    },1800);
+  }
+  function stopTimelineCycle(){clearInterval(tlTimer);tlTimer=null}
+
+  // run cycle only when timeline visible
+  const tlObserver = new MutationObserver(()=>{
+    const tlSlide = document.querySelectorAll('.slide')[9]; // index 9 = slide 10
+    if(tlSlide.classList.contains('active')) startTimelineCycle(); else stopTimelineCycle();
+  });
+  slides.forEach(s=>tlObserver.observe(s,{attributes:true,attributeFilter:['class']}));
+
+  // ---- compare panel ----
+  const cmpData = {
+    prompt: {
+      title:'1세대 — 단발 프롬프트',
+      before:{
+        h:'❌ 한 번의 호출로 끝',
+        body:'사용자가 회의록·CS 데이터를 직접 복사해서 한 번에 붙여 넣고 "분류해줘" 라고 부탁합니다.<br/><br/>• 데이터가 길면 잘립니다<br/>• 분류 기준은 매번 모호함<br/>• 결과 검증도 사람 몫<br/>• 다음 분기에는 처음부터 다시'
+      },
+      after:{
+        h:'✅ 잘 설계된 프롬프트',
+        body:'역할·예시·출력 포맷을 명시한 템플릿으로 일관성 확보.<br/><br/>• Few-shot 예시 3개 추가<br/>• JSON 스키마 강제<br/>• 톤·길이 제한<br/>• 그래도 한 번의 호출 한계는 존재'
+      },
+      m:[['처리 건수','~10건','/회'],['일관성','60%','템플릿화'],['자동화','없음','수동 실행']]
+    },
+    agent: {
+      title:'2세대 — 에이전틱 루프',
+      before:{
+        h:'1세대 한계',
+        body:'데이터가 크면 잘리고, 도구를 못 쓰니 외부 시스템과 연결이 안 됨.<br/>매번 사람이 결과를 보고 다음 행동을 지시해야 함.'
+      },
+      after:{
+        h:'✅ 에이전트가 스스로 일함',
+        body:'목표만 던지면 에이전트가 도구를 골라가며 진행.<br/><br/>• CS DB 자동 쿼리<br/>• 분류 후 누락 감지 → 재시도<br/>• 우선순위 산정 알고리즘 호출<br/>• 결과를 슬랙에 자동 게시'
+      },
+      m:[['처리 건수','~1,000건','/회 ↑100x'],['일관성','85%','자기수정 포함'],['자동화','부분','사람 승인 필요']]
+    },
+    harness: {
+      title:'3세대 — 하네스 위에서',
+      before:{
+        h:'2세대 한계',
+        body:'에이전트가 스스로 일하지만 — 컨텍스트가 폭주하고, 잘못된 도구 호출 막을 수단이 없으며, 비용도 측정 불가.'
+      },
+      after:{
+        h:'✅ 환경이 받쳐줌',
+        body:'컨텍스트 관리·가드레일·평가가 깔린 위에서 에이전트가 안정적으로 동작.<br/><br/>• 권한 분리된 도구 카탈로그<br/>• 가드레일이 위험한 행동 차단<br/>• 캐싱·배치로 비용 1/5<br/>• 평가 셋으로 회귀 자동 감지<br/>• 사람은 핵심 결정만 승인'
+      },
+      m:[['처리 건수','~10,000건','/일 운영'],['일관성','97%','평가셋 회귀 0'],['비용','-80%','캐싱·배치']]
+    }
+  };
+  function renderCmp(key){
+    const d=cmpData[key];
+    document.querySelectorAll('.cmp-tab').forEach(t=>{
+      const on=t.dataset.cmp===key;
+      t.style.background = on ? 'var(--brand-green-soft)' : '#fff';
+      t.style.color = on ? 'var(--brand-green-dark)' : 'var(--ink-mute)';
+      t.style.border = on ? '0' : '1px solid var(--line)';
+      if(on) t.style.fontWeight='800';
+    });
+    document.getElementById('cmpWrap').innerHTML = `
+      <div class="compare before"><span class="badge">BEFORE</span><h4>${d.before.h}</h4><div class="body">${d.before.body}</div></div>
+      <div class="compare after"><span class="badge">AFTER</span><h4>${d.after.h}</h4><div class="body">${d.after.body}</div></div>
+    `;
+    document.getElementById('cmpMetrics').innerHTML = d.m.map(m=>`
+      <div class="metric"><div class="lbl">${m[0]}</div><div class="v">${m[1]}</div><div class="delta">${m[2]}</div></div>
+    `).join('');
+  }
+  document.querySelectorAll('.cmp-tab').forEach(t=>t.addEventListener('click',()=>renderCmp(t.dataset.cmp)));
+  renderCmp('prompt');
+
+  // ---- quiz interaction ----
+  const quizCorrect = 1; // B
+  document.querySelectorAll('#quizRoot .quiz-opt').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const opts = document.querySelectorAll('#quizRoot .quiz-opt');
+      opts.forEach(o=>{ o.classList.remove('correct','wrong'); });
+      const picked = parseInt(btn.dataset.q,10);
+      if(picked === quizCorrect){
+        btn.classList.add('correct');
+      } else {
+        btn.classList.add('wrong');
+        opts[quizCorrect].classList.add('correct');
+      }
+      document.getElementById('quizExplain').classList.add('show');
+    });
+  });
+
+  // init — URL 해시가 있으면 그 페이지로, 없으면 1페이지
+  const initIdx = readHashIdx();
+  go(initIdx !== null ? initIdx : 0);
+</script>
+</body>
+</html>
