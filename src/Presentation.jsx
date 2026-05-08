@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
 const palette = {
   bg: "#f8fafc",
@@ -271,7 +272,7 @@ function Chrome({ idx, total, slide, children, onPrev, onNext, onGoto }) {
 
         <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 14 }}>
           <a
-            href="#/"
+            href="/"
             style={{ fontSize: 13, color: palette.textMuted, textDecoration: "none" }}
             onMouseEnter={e => (e.currentTarget.style.color = palette.indigo)}
             onMouseLeave={e => (e.currentTarget.style.color = palette.textMuted)}
@@ -783,23 +784,22 @@ function renderSlide(slide) {
 }
 
 export default function Presentation() {
-  const [idx, setIdx] = useState(() => {
-    const m = window.location.hash.match(/^#\/spec-manager\/(\d+)/);
-    if (m) {
-      const n = parseInt(m[1], 10) - 1;
-      return Math.max(0, Math.min(slides.length - 1, n));
-    }
-    return 0;
-  });
+  const navigate = useNavigate();
+  const { slide } = useParams();
+  const [idx, setIdx] = useState(0);
+
+  useEffect(() => {
+    const nextIdx = slide && /^\d+$/.test(slide) ? Number(slide) - 1 : 0;
+    setIdx(Math.max(0, Math.min(slides.length - 1, nextIdx)));
+  }, [slide]);
 
   const goto = useCallback((i) => {
     const clamped = Math.max(0, Math.min(slides.length - 1, i));
     setIdx(clamped);
-    const newHash = clamped === 0 ? "#/spec-manager" : `#/spec-manager/${clamped + 1}`;
-    if (window.location.hash !== newHash) {
-      window.history.replaceState(null, "", newHash);
-    }
-  }, []);
+    const nextPath = clamped === 0 ? "/spec-manager" : `/spec-manager/${clamped + 1}`;
+    const currentPath = idx === 0 ? "/spec-manager" : `/spec-manager/${idx + 1}`;
+    if (nextPath !== currentPath) navigate(nextPath);
+  }, [idx, navigate]);
 
   const next = useCallback(() => goto(idx + 1), [idx, goto]);
   const prev = useCallback(() => goto(idx - 1), [idx, goto]);

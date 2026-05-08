@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
-import MultiAgentProcess from "./MultiAgentProcess.jsx";
+import { useMemo, useState } from "react";
 
 const palette = {
   bg: "#f7f3ea",
@@ -279,19 +278,7 @@ const comparisonSets = [
   },
 ];
 
-function useHash() {
-  const [hash, setHash] = useState(window.location.hash || "#/");
-
-  useEffect(() => {
-    const onChange = () => setHash(window.location.hash || "#/");
-    window.addEventListener("hashchange", onChange);
-    return () => window.removeEventListener("hashchange", onChange);
-  }, []);
-
-  return hash;
-}
-
-function BackLink({ href = "#/", label = "메뉴로" }) {
+function BackLink({ href = "/", label = "메뉴로" }) {
   return (
     <a
       href={href}
@@ -331,8 +318,16 @@ function Shell({ children }) {
   );
 }
 
-function HomePage() {
+export function HomePage() {
   const menus = [
+    {
+      href: "/plant-energy",
+      title: "12단원 식물과 에너지",
+      subtitle: "광합성, 호흡, 증산, 물질 이동을 애니메이션과 퀴즈로 이해하는 학습 페이지",
+      accent: palette.green,
+      meta: "광합성 · 호흡 · 증산 · 물질 이동",
+      external: true,
+    },
     {
       href: "presentation.html",
       title: "코딩과 AI 패러다임",
@@ -342,7 +337,7 @@ function HomePage() {
       external: true,
     },
     {
-      href: "#/jp-vocab",
+      href: "/jp-vocab",
       title: "일본어 단어 암기",
       subtitle: "비슷한 단어를 묶어서 빠르게 외우는 학습 페이지",
       accent: palette.red,
@@ -350,7 +345,7 @@ function HomePage() {
       external: true,
     },
     {
-      href: "#/multi-agent",
+      href: "/multi-agent",
       title: "멀티에이전트 개발 프로세스",
       subtitle: "기존 CLAUDE.md 프로세스 시각화 화면",
       accent: palette.blue,
@@ -358,7 +353,7 @@ function HomePage() {
       external: true,
     },
     {
-      href: "#/spec-manager",
+      href: "/spec-manager",
       title: "스펙매니저 발표 자료",
       subtitle: "spec-manager 소개 슬라이드",
       accent: palette.green,
@@ -690,7 +685,7 @@ function Quiz({ words }) {
   );
 }
 
-function VocabularyPage() {
+export function VocabularyPage() {
   const [activeGroupId, setActiveGroupId] = useState(wordGroups[0].id);
   const [activeCardIndex, setActiveCardIndex] = useState(0);
   const [isCardOpen, setIsCardOpen] = useState(false);
@@ -893,9 +888,5 @@ const controlButtonStyle = {
 };
 
 export default function App() {
-  const hash = useHash();
-
-  if (hash.startsWith("#/multi-agent")) return <MultiAgentProcess />;
-  if (hash.startsWith("#/jp-vocab")) return <VocabularyPage />;
   return <HomePage />;
 }

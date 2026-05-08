@@ -1,23 +1,49 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import ReactDOM from "react-dom/client";
-import App from "./App.jsx";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import App, { HomePage, VocabularyPage } from "./App.jsx";
+import MultiAgentProcess from "./MultiAgentProcess.jsx";
+import PlantEnergyLearning from "./PlantEnergyLearning.jsx";
 import Presentation from "./Presentation.jsx";
 
-function Router() {
-  const [hash, setHash] = useState(window.location.hash);
+const legacyHashRoutes = new Map([
+  ["#/", "/"],
+  ["#/jp-vocab", "/jp-vocab"],
+  ["#/multi-agent", "/multi-agent"],
+  ["#/spec-manager", "/spec-manager"],
+  ["#/plant-energy", "/plant-energy"],
+]);
 
-  useEffect(() => {
-    const onChange = () => setHash(window.location.hash);
-    window.addEventListener("hashchange", onChange);
-    return () => window.removeEventListener("hashchange", onChange);
-  }, []);
+function redirectLegacyHashRoute() {
+  const { hash, pathname, search } = window.location;
+  if (!hash.startsWith("#/")) return;
 
-  if (hash.startsWith("#/spec-manager")) return <Presentation />;
-  return <App />;
+  const [hashPath, hashSearch = ""] = hash.split("?");
+  const specManagerSlideMatch = hashPath.match(/^#\/spec-manager\/(\d+)$/);
+  const nextPath = specManagerSlideMatch
+    ? `/spec-manager/${specManagerSlideMatch[1]}`
+    : legacyHashRoutes.get(hashPath);
+
+  if (!nextPath) return;
+
+  const nextSearch = hashSearch ? `?${hashSearch}` : search;
+  window.history.replaceState(null, "", `${nextPath}${nextSearch}`);
 }
+
+redirectLegacyHashRoute();
+
+const router = createBrowserRouter([
+  { path: "/", element: <HomePage /> },
+  { path: "/jp-vocab", element: <VocabularyPage /> },
+  { path: "/multi-agent", element: <MultiAgentProcess /> },
+  { path: "/spec-manager", element: <Presentation /> },
+  { path: "/spec-manager/:slide", element: <Presentation /> },
+  { path: "/plant-energy", element: <PlantEnergyLearning /> },
+  { path: "*", element: <App /> },
+]);
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <Router />
+    <RouterProvider router={router} />
   </React.StrictMode>
 );
