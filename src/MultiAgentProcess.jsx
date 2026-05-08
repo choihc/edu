@@ -236,7 +236,7 @@ export default function App() {
               CLAUDE.md
             </span>
             <a
-              href="#/spec-manager"
+              href="/spec-manager"
               style={{
                 marginLeft: "auto",
                 background: "#4f46e5", color: "#fff",
