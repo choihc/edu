@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 
 const palette = {
   bg: "#f7f3ea",
@@ -280,8 +281,8 @@ const comparisonSets = [
 
 function BackLink({ href = "/", label = "메뉴로" }) {
   return (
-    <a
-      href={href}
+    <Link
+      to={href}
       style={{
         display: "inline-flex",
         color: palette.muted,
@@ -296,7 +297,7 @@ function BackLink({ href = "/", label = "메뉴로" }) {
       }}
     >
       {label}
-    </a>
+    </Link>
   );
 }
 
@@ -326,7 +327,7 @@ export function HomePage() {
       subtitle: "광합성, 호흡, 증산, 물질 이동을 애니메이션과 퀴즈로 이해하는 학습 페이지",
       accent: palette.green,
       meta: "광합성 · 호흡 · 증산 · 물질 이동",
-      external: true,
+      external: false,
     },
     {
       href: "presentation.html",
@@ -342,7 +343,7 @@ export function HomePage() {
       subtitle: "비슷한 단어를 묶어서 빠르게 외우는 학습 페이지",
       accent: palette.red,
       meta: "플래시카드 · 퀴즈 · 비교표",
-      external: true,
+      external: false,
     },
     {
       href: "/multi-agent",
@@ -350,7 +351,7 @@ export function HomePage() {
       subtitle: "기존 CLAUDE.md 프로세스 시각화 화면",
       accent: palette.blue,
       meta: "페르소나 · 플로우 · PR 절차",
-      external: true,
+      external: false,
     },
     {
       href: "/spec-manager",
@@ -358,7 +359,7 @@ export function HomePage() {
       subtitle: "spec-manager 소개 슬라이드",
       accent: palette.green,
       meta: "발표 모드",
-      external: true,
+      external: false,
     },
   ];
 
@@ -404,9 +405,9 @@ export function HomePage() {
           }}
         >
           {menus.map((menu) => (
-            <a
+            <Link
               key={menu.href}
-              href={menu.href}
+              to={menu.href}
               target={menu.external ? "_blank" : undefined}
               rel={menu.external ? "noopener noreferrer" : undefined}
               style={{
@@ -444,7 +445,7 @@ export function HomePage() {
               <div style={{ marginTop: "auto", color: menu.accent, fontWeight: 900 }}>
                 {menu.external ? "새 창으로 열기 ↗" : "들어가기"}
               </div>
-            </a>
+            </Link>
           ))}
         </section>
       </main>
