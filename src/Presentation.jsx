@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { openPdfPrintView, presentationDownloads, runExportMode } from "./downloadUtils.js";
 
 const palette = {
   bg: "#f8fafc",
@@ -271,11 +272,46 @@ function Chrome({ idx, total, slide, children, onPrev, onNext, onGoto }) {
         </div>
 
         <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 14 }}>
+          <div style={{ display: "flex", gap: 8 }} data-export-hidden>
+            <button
+              type="button"
+              onClick={() => openPdfPrintView(presentationDownloads.specManager.pdf)}
+              style={{
+                border: `1px solid ${palette.indigo}55`,
+                background: palette.indigoLight,
+                color: palette.indigo,
+                borderRadius: 8,
+                padding: "7px 12px",
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: "pointer",
+              }}
+            >
+              PDF 저장
+            </button>
+            <button
+              type="button"
+              onClick={() => window.open(presentationDownloads.specManager.html, "_blank", "noopener,noreferrer")}
+              style={{
+                border: `1px solid ${palette.border}`,
+                background: palette.surface,
+                color: palette.textSub,
+                borderRadius: 8,
+                padding: "7px 12px",
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: "pointer",
+              }}
+            >
+              HTML 다운로드
+            </button>
+          </div>
           <a
             href="/"
             style={{ fontSize: 13, color: palette.textMuted, textDecoration: "none" }}
             onMouseEnter={e => (e.currentTarget.style.color = palette.indigo)}
             onMouseLeave={e => (e.currentTarget.style.color = palette.textMuted)}
+            data-export-hidden
           >
             ← 메인으로
           </a>
@@ -783,10 +819,83 @@ function renderSlide(slide) {
   }
 }
 
+function ExportDeck() {
+  useEffect(() => {
+    runExportMode({ filename: "spec-manager-presentation.html", delay: 900 });
+  }, []);
+
+  return (
+    <div style={{
+      fontFamily: "'Pretendard', 'Noto Sans KR', sans-serif",
+      background: palette.bg,
+      color: palette.text,
+      padding: 24,
+    }}>
+      <style>{`
+        @page { size: 16in 9in; margin: 0; }
+        @media print {
+          body { background: ${palette.bg}; }
+          [data-export-hidden] { display: none !important; }
+          .spec-export-slide { break-after: page; page-break-after: always; box-shadow: none !important; }
+        }
+      `}</style>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", margin: "0 auto 18px", maxWidth: 1100 }} data-export-hidden>
+        <strong style={{ color: palette.text }}>스펙매니저 발표 자료</strong>
+        <button
+          type="button"
+          onClick={() => window.print()}
+          style={{
+            border: `1px solid ${palette.indigo}55`,
+            background: palette.indigo,
+            color: "#fff",
+            borderRadius: 8,
+            padding: "8px 14px",
+            fontSize: 13,
+            fontWeight: 700,
+            cursor: "pointer",
+          }}
+        >
+          PDF 저장
+        </button>
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+        {slides.map((item, index) => (
+          <section
+            className="spec-export-slide"
+            key={`${item.kind}-${index}`}
+            style={{
+              width: "min(1100px, 100%)",
+              minHeight: 620,
+              margin: "0 auto",
+              background: palette.surface,
+              border: `1px solid ${palette.border}`,
+              borderRadius: 20,
+              boxShadow: "0 10px 40px rgba(15,23,42,0.06)",
+              padding: "48px 56px",
+              display: "flex",
+              flexDirection: "column",
+              position: "relative",
+              overflow: "hidden",
+            }}
+          >
+            {renderSlide(item)}
+            <div style={{ position: "absolute", right: 28, bottom: 20, color: palette.textFaint, fontSize: 12 }}>
+              {index + 1} / {slides.length}
+            </div>
+          </section>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function Presentation() {
   const navigate = useNavigate();
   const { slide } = useParams();
   const [idx, setIdx] = useState(0);
+  const isExportView = typeof window !== "undefined"
+    && (new URLSearchParams(window.location.search).get("print") === "1"
+      || new URLSearchParams(window.location.search).get("export") === "html");
 
   useEffect(() => {
     const nextIdx = slide && /^\d+$/.test(slide) ? Number(slide) - 1 : 0;
@@ -805,6 +914,7 @@ export default function Presentation() {
   const prev = useCallback(() => goto(idx - 1), [idx, goto]);
 
   useEffect(() => {
+    if (isExportView) return;
     const handler = (e) => {
       if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
       if (e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") { e.preventDefault(); next(); }
@@ -818,7 +928,9 @@ export default function Presentation() {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [next, prev, goto]);
+  }, [next, prev, goto, isExportView]);
+
+  if (isExportView) return <ExportDeck />;
 
   return (
     <Chrome

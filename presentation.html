@@ -52,6 +52,8 @@
   .brand .dot{width:16px;height:16px;background:var(--brand-green);border-radius:4px;box-shadow:0 0 0 3px rgba(3,199,90,.18)}
   .slide-foot{position:absolute;left:84px;right:84px;bottom:30px;display:flex;justify-content:space-between;align-items:center;color:var(--ink-mute);font-size:14px;pointer-events:none}
   .progress-bar{position:absolute;left:0;bottom:0;height:4px;background:var(--brand-green);transition:width .5s ease}
+  .export-nav{position:fixed;right:24px;bottom:22px;z-index:20;display:flex;gap:8px}
+  .export-nav button{border:1px solid rgba(3,199,90,.35);background:#fff;color:var(--brand-green-dark);border-radius:9px;padding:9px 13px;font-size:13px;font-weight:800;box-shadow:var(--shadow);cursor:pointer}
 
   /* ====== Cover ====== */
   .cover{background:linear-gradient(135deg,#03C75A 0%,#02A34A 60%,#017a37 100%);color:#fff;justify-content:flex-end;padding:90px;padding-bottom:100px}
@@ -256,7 +258,7 @@
   .nav button:hover{background:var(--brand-green-soft);color:var(--brand-green-dark)}
   .nav .pos{font-weight:800;color:var(--ink);min-width:70px;text-align:center;font-size:15px}
   .nav .pos b{color:var(--brand-green-dark)}
-  .help{position:fixed;top:18px;right:22px;color:#A8B0BA;font-size:13px;z-index:30;display:flex;gap:8px;align-items:center}
+  .help{position:fixed;top:18px;left:22px;color:#A8B0BA;font-size:13px;z-index:30;display:flex;gap:8px;align-items:center}
   .help .kbd{background:rgba(255,255,255,.06);color:#D7DBE0;border-color:#2A2F36}
 
   /* ====== Animated reveal ====== */
@@ -548,9 +550,24 @@
     .tl-arrow{transform:rotate(90deg);padding:6px 0}
     .slide-foot{left:28px;right:28px}
   }
+  @media print{
+    @page{size:16in 9in;margin:0}
+    html,body{height:auto;overflow:visible;background:#fff}
+    .stage{position:static;display:block;inset:auto;perspective:none}
+    .deck{width:100%;max-height:none;aspect-ratio:auto;border-radius:0;box-shadow:none;overflow:visible}
+    .slide{position:relative;inset:auto;width:100%;height:100vh;opacity:1;transform:none;pointer-events:auto;break-after:page;page-break-after:always}
+    .slide.prev{transform:none}
+    .nav,.help,.export-nav{display:none!important}
+    .reveal{opacity:1!important;transform:none!important}
+  }
 </style>
 </head>
 <body>
+
+<div class="export-nav" data-export-hidden>
+  <button type="button" id="printPdf">PDF 저장</button>
+  <button type="button" id="downloadHtml">HTML 다운로드</button>
+</div>
 
 <div class="help"><span class="kbd">←</span><span class="kbd">→</span><span>로 이동</span><span class="kbd">F</span><span>전체화면</span></div>
 
@@ -1721,6 +1738,21 @@ Q: "배송이 늦어요"           → <em>배송</em>
   document.getElementById('total').textContent = total;
   let idx = 0;
 
+  function downloadCurrentHtml(){
+    const clone = document.documentElement.cloneNode(true);
+    clone.querySelectorAll('[data-export-hidden]').forEach(node=>node.remove());
+    clone.querySelectorAll('script').forEach(node=>node.remove());
+    const blob = new Blob(['<!doctype html>\n' + clone.outerHTML], {type:'text/html;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'coding-ai-paradigm.html';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
   function go(n, opts){
     const skipHash = opts && opts.skipHash;
     idx = Math.max(0, Math.min(total-1, n));
@@ -1749,6 +1781,8 @@ Q: "배송이 늦어요"           → <em>배송</em>
 
   document.getElementById('prev').onclick = ()=>go(idx-1);
   document.getElementById('next').onclick = ()=>go(idx+1);
+  document.getElementById('printPdf').onclick = ()=>window.print();
+  document.getElementById('downloadHtml').onclick = downloadCurrentHtml;
   window.addEventListener('keydown', e=>{
     if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' ') go(idx+1);
     else if(e.key==='ArrowLeft'||e.key==='PageUp') go(idx-1);
@@ -1904,6 +1938,9 @@ Q: "배송이 늦어요"           → <em>배송</em>
   // init — URL 해시가 있으면 그 페이지로, 없으면 1페이지
   const initIdx = readHashIdx();
   go(initIdx !== null ? initIdx : 0);
+  const params = new URLSearchParams(location.search);
+  if(params.get('print') === '1') window.setTimeout(()=>window.print(), 700);
+  if(params.get('export') === 'html') window.setTimeout(downloadCurrentHtml, 700);
 </script>
 </body>
 </html>

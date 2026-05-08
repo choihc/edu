@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { downloadStaticHtml, openPdfPrintView, presentationDownloads } from "./downloadUtils.js";
 
 const palette = {
   bg: "#f7f3ea",
@@ -336,6 +337,7 @@ export function HomePage() {
       accent: palette.amber,
       meta: "발표 슬라이드 · 38p",
       external: true,
+      downloads: presentationDownloads.codingAi,
     },
     {
       href: "/jp-vocab",
@@ -352,6 +354,7 @@ export function HomePage() {
       accent: palette.blue,
       meta: "페르소나 · 플로우 · PR 절차",
       external: false,
+      downloads: presentationDownloads.multiAgent,
     },
     {
       href: "/spec-manager",
@@ -360,6 +363,7 @@ export function HomePage() {
       accent: palette.green,
       meta: "발표 모드",
       external: false,
+      downloads: presentationDownloads.specManager,
     },
   ];
 
@@ -405,11 +409,8 @@ export function HomePage() {
           }}
         >
           {menus.map((menu) => (
-            <Link
+            <div
               key={menu.href}
-              to={menu.href}
-              target={menu.external ? "_blank" : undefined}
-              rel={menu.external ? "noopener noreferrer" : undefined}
               style={{
                 minHeight: 230,
                 padding: 24,
@@ -433,19 +434,65 @@ export function HomePage() {
                 event.currentTarget.style.boxShadow = "0 12px 34px rgba(38,33,27,0.08)";
               }}
             >
-              <div style={{ color: menu.accent, fontSize: 13, fontWeight: 900, marginBottom: 16 }}>
-                {menu.meta}
-              </div>
-              <h2 style={{ margin: 0, fontSize: 25, lineHeight: 1.2, color: palette.ink }}>
-                {menu.title}
-              </h2>
-              <p style={{ margin: "14px 0 0", color: palette.muted, lineHeight: 1.7, fontSize: 15 }}>
-                {menu.subtitle}
-              </p>
-              <div style={{ marginTop: "auto", color: menu.accent, fontWeight: 900 }}>
-                {menu.external ? "새 창으로 열기 ↗" : "들어가기"}
-              </div>
-            </Link>
+              <Link
+                to={menu.href}
+                target={menu.external ? "_blank" : undefined}
+                rel={menu.external ? "noopener noreferrer" : undefined}
+                style={{ textDecoration: "none", color: palette.text, display: "flex", flexDirection: "column", flex: 1 }}
+              >
+                <div style={{ color: menu.accent, fontSize: 13, fontWeight: 900, marginBottom: 16 }}>
+                  {menu.meta}
+                </div>
+                <h2 style={{ margin: 0, fontSize: 25, lineHeight: 1.2, color: palette.ink }}>
+                  {menu.title}
+                </h2>
+                <p style={{ margin: "14px 0 0", color: palette.muted, lineHeight: 1.7, fontSize: 15 }}>
+                  {menu.subtitle}
+                </p>
+                <div style={{ marginTop: "auto", color: menu.accent, fontWeight: 900 }}>
+                  {menu.external ? "새 창으로 열기 ↗" : "들어가기"}
+                </div>
+              </Link>
+              {menu.downloads && (
+                <div style={{ display: "flex", gap: 8, marginTop: 18 }} data-export-hidden>
+                  <button
+                    type="button"
+                    onClick={() => openPdfPrintView(menu.downloads.pdf)}
+                    style={{
+                      border: `1px solid ${menu.accent}55`,
+                      background: `${menu.accent}12`,
+                      color: menu.accent,
+                      borderRadius: 8,
+                      padding: "8px 12px",
+                      fontSize: 13,
+                      fontWeight: 800,
+                      cursor: "pointer",
+                    }}
+                  >
+                    PDF 저장
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (menu.downloads.filename) downloadStaticHtml(menu.downloads.html, menu.downloads.filename);
+                      else window.open(menu.downloads.html, "_blank", "noopener,noreferrer");
+                    }}
+                    style={{
+                      border: `1px solid ${palette.line}`,
+                      background: "#fff",
+                      color: palette.text,
+                      borderRadius: 8,
+                      padding: "8px 12px",
+                      fontSize: 13,
+                      fontWeight: 800,
+                      cursor: "pointer",
+                    }}
+                  >
+                    HTML 다운로드
+                  </button>
+                </div>
+              )}
+            </div>
           ))}
         </section>
       </main>

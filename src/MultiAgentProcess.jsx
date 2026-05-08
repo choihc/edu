@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { openPdfPrintView, presentationDownloads, runExportMode } from "./downloadUtils.js";
 
 const personas = {
   pm: {
@@ -209,6 +210,14 @@ export default function App() {
   const [selectedPersona, setSelectedPersona] = useState(null);
   const [hoveredStep, setHoveredStep] = useState(null);
   const [hoveredWork, setHoveredWork] = useState(null);
+  const isExportView = typeof window !== "undefined"
+    && (new URLSearchParams(window.location.search).get("print") === "1"
+      || new URLSearchParams(window.location.search).get("export") === "html");
+  const isTabVisible = (tab) => isExportView || activeTab === tab;
+
+  useEffect(() => {
+    runExportMode({ filename: "multi-agent-process.html" });
+  }, []);
 
   const tabs = [
     { id: "overview", label: "전체 구조" },
@@ -220,6 +229,12 @@ export default function App() {
 
   return (
     <div style={{ fontFamily: "'Pretendard', 'Noto Sans KR', sans-serif", background: palette.bg, minHeight: "100vh", color: palette.text }}>
+      <style>{`
+        @media print {
+          [data-export-hidden] { display: none !important; }
+          body { background: ${palette.bg}; }
+        }
+      `}</style>
       {/* Header */}
       <div style={{
         background: "linear-gradient(135deg, #eef2ff 0%, #fdf2f8 50%, #ecfdf5 100%)",
@@ -237,6 +252,7 @@ export default function App() {
             </span>
             <a
               href="/spec-manager"
+              data-export-hidden
               style={{
                 marginLeft: "auto",
                 background: "#4f46e5", color: "#fff",
@@ -248,6 +264,40 @@ export default function App() {
             >
               📘 스펙매니저 발표 자료 →
             </a>
+            <div style={{ display: "flex", gap: 8 }} data-export-hidden>
+              <button
+                type="button"
+                onClick={() => openPdfPrintView(presentationDownloads.multiAgent.pdf)}
+                style={{
+                  border: "1px solid #4f46e555",
+                  background: "#4f46e512",
+                  color: "#4f46e5",
+                  borderRadius: 8,
+                  padding: "7px 12px",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                PDF 저장
+              </button>
+              <button
+                type="button"
+                onClick={() => window.open(presentationDownloads.multiAgent.html, "_blank", "noopener,noreferrer")}
+                style={{
+                  border: `1px solid ${palette.border}`,
+                  background: palette.surface,
+                  color: palette.textSub,
+                  borderRadius: 8,
+                  padding: "7px 12px",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                HTML 다운로드
+              </button>
+            </div>
           </div>
           <p style={{ margin: 0, fontSize: 14, color: palette.textMuted }}>
             시니어 페르소나 에이전트들의 협업으로 비자명한 작업을 수행한다
@@ -256,7 +306,7 @@ export default function App() {
       </div>
 
       {/* Tabs */}
-      <div style={{ background: palette.surface, borderBottom: `1px solid ${palette.border}`, padding: "0 28px" }}>
+      <div style={{ background: palette.surface, borderBottom: `1px solid ${palette.border}`, padding: "0 28px" }} data-export-hidden>
         <div style={{ maxWidth: 1080, margin: "0 auto", display: "flex", gap: 2 }}>
           {tabs.map(t => (
             <button
@@ -279,7 +329,7 @@ export default function App() {
       <div style={{ maxWidth: 1080, margin: "0 auto", padding: "28px" }}>
 
         {/* ── OVERVIEW ── */}
-        {activeTab === "overview" && (
+        {isTabVisible("overview") && (
           <div>
             {/* PM 중심 */}
             <div
@@ -353,8 +403,8 @@ export default function App() {
         )}
 
         {/* ── PERSONAS ── */}
-        {activeTab === "personas" && (
-          <div>
+        {isTabVisible("personas") && (
+          <div style={{ marginTop: isExportView ? 36 : 0 }}>
             <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
               {Object.values(personas).map(p => (
                 <button
@@ -429,8 +479,8 @@ export default function App() {
         )}
 
         {/* ── WORKFLOW ── */}
-        {activeTab === "workflow" && (
-          <div>
+        {isTabVisible("workflow") && (
+          <div style={{ marginTop: isExportView ? 36 : 0 }}>
             {flowSteps.map((s, i) => (
               <div
                 key={s.step}
@@ -498,8 +548,8 @@ export default function App() {
         )}
 
         {/* ── COMBO ── */}
-        {activeTab === "combo" && (
-          <div>
+        {isTabVisible("combo") && (
+          <div style={{ marginTop: isExportView ? 36 : 0 }}>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }}>
               {workTypes.map((w, i) => (
                 <div
@@ -535,8 +585,8 @@ export default function App() {
         )}
 
         {/* ── PR ── */}
-        {activeTab === "pr" && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        {isTabVisible("pr") && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: isExportView ? 36 : 0 }}>
             {[
               {
                 step: "1단계", label: "서브에이전트 코드리뷰", icon: "🔍", color: "#d97706", bg: "#fffbeb",
