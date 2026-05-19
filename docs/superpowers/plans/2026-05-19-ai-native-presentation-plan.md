@@ -22,8 +22,12 @@
 1. **자동 검증** — `npm run build` 0 warning 0 error
 2. **시각 검증** — `npm run dev` 실행 후 브라우저에서 슬라이드/홈 카드/네비 동작 확인
 3. **소스 검증** — spec §7.3 자료 검증 부록(`sources.md`)이 commit에 포함되었는지 확인
+4. **출처 표기 dev-only warn** — `aiNativeSlides.js` 하단에 `import.meta.env.DEV` 가드로 정량 슬라이드 `source` 필드 누락 시 console.warn 출력 → dev 서버 띄울 때 즉시 확인
 
-각 Task 마지막에 위 3종 중 적용 가능한 것 모두 수행한 뒤 commit한다.
+각 Task 마지막에 위 4종 중 적용 가능한 것 모두 수행한 뒤 commit한다.
+
+**Spec 해석 노트 (palette 적용 범위 명확화)**:
+spec §6.1·§9의 `palette.indigo`는 **슬라이드 내부의 palette**(Presentation.jsx 톤 복제) 를 가리키며 홈 메뉴 카드 색은 별개 결정이다. App.jsx의 home palette(`red/blue/green/amber/...`)에서 다른 홈 카드들과 차별되는 색을 선택한다. → **본 plan에서는 `palette.blue`(=`#315f82`) 채택**(spec-manager·multi-agent와 인접 톤, 식물/일본어 등과는 차별). 이 결정은 spec rev 3 §9의 "홈 노출 = palette.indigo" 표현을 **"홈 노출 = App.jsx의 기존 palette에서 다른 카드와 차별되는 색 1개"** 로 해석한 것이며, 향후 spec rev 4 작성 시 정정한다.
 
 ---
 
@@ -182,6 +186,31 @@ export const slides = [
     subtitle: "(스캐폴딩 — Chunk 3에서 채움)",
   },
 ];
+
+// 출처 표기 dev-only 검증 — spec §7.4 룰
+// 정량 슬라이드(stats-grid / compare-rows / 정량 list-rows variant)는 source 필수.
+if (import.meta.env && import.meta.env.DEV) {
+  const REQUIRE_SOURCE_KINDS = new Set(["stats-grid", "compare-rows"]);
+  const REQUIRE_SOURCE_LIST_VARIANTS = new Set([
+    "counterevidence",
+    "cycle-step",
+    "persona-quant",
+    "eval-metric",
+  ]);
+  const missing = [];
+  slides.forEach((s, i) => {
+    const needs =
+      REQUIRE_SOURCE_KINDS.has(s.kind) ||
+      (s.kind === "list-rows" && REQUIRE_SOURCE_LIST_VARIANTS.has(s.variant));
+    if (needs && !s.source) {
+      missing.push(`#${i + 1} ${s.kind}${s.variant ? "/" + s.variant : ""}`);
+    }
+  });
+  if (missing.length > 0) {
+    // eslint-disable-next-line no-console
+    console.warn(`[aiNativeSlides] source 누락: ${missing.join(", ")}`);
+  }
+}
 ```
 
 - [ ] **Step 2: 빌드 검증**
@@ -247,10 +276,12 @@ const palette = {
 
 // ─── kind별 렌더러 (Chunk 2에서 채움) ───────────────────────
 function HeroSlide({ s }) {
+  // variant: "title" (기본) | "case-intro" (Act 4 도입) — eyebrow 색만 분기
+  const eyebrowColor = s.variant === "case-intro" ? palette.amber : palette.indigo;
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", padding: "0 8%", textAlign: "center" }}>
       {s.eyebrow && (
-        <div style={{ color: palette.indigo, fontWeight: 800, letterSpacing: "0.08em", fontSize: 14, marginBottom: 18 }}>
+        <div style={{ color: eyebrowColor, fontWeight: 800, letterSpacing: "0.08em", fontSize: 14, marginBottom: 18 }}>
           {s.eyebrow}
         </div>
       )}
@@ -351,8 +382,14 @@ const navBtnStyle = (disabled) => ({
 });
 
 // ─── Export 모드 (인쇄/HTML 다운로드) ───────────────────────
+// React StrictMode에서 useEffect가 2회 실행되어 인쇄 다이얼로그가 2회 뜨는 것을 방지하기 위한
+// 모듈 레벨 1회 가드.
+let exportModeTriggered = false;
+
 function ExportDeck() {
   useEffect(() => {
+    if (exportModeTriggered) return;
+    exportModeTriggered = true;
     runExportMode({ filename: "ai-native-presentation.html", delay: 900 });
   }, []);
 
@@ -363,6 +400,14 @@ function ExportDeck() {
       color: palette.text,
       padding: "32px",
     }}>
+      {/* 인쇄 시 footer/네비 등 [data-export-hidden] 요소 숨김 + 페이지 분할 */}
+      <style>{`
+        @page { size: A4 landscape; margin: 12mm; }
+        @media print {
+          [data-export-hidden] { display: none !important; }
+          section { page-break-after: always; }
+        }
+      `}</style>
       {slides.map((s, i) => (
         <section key={i} style={{
           minHeight: "60vh",
@@ -461,21 +506,23 @@ palette는 Presentation.jsx와 동일 키·값 복제 (spec §5.2)."
 
 본 Task가 끝나면 `npm run dev` 후 브라우저에서 `/ai-native` 가 hero 슬라이드 1장을 보여주고 키 네비가 동작한다.
 
-- [ ] **Step 1: main.jsx 수정**
+- [ ] **Step 1: main.jsx 수정 (sentinel 기반 — 라인 번호 의존 X)**
 
-`src/main.jsx`에서 import 추가 (line 7 아래):
+`src/main.jsx`에서 다음 3곳을 수정한다.
+
+**1) import 추가**: `import Presentation from "./Presentation.jsx";` 다음 줄에 추가:
 
 ```jsx
 import AiNativePresentation from "./AiNativePresentation.jsx";
 ```
 
-`legacyHashRoutes` Map에 `"#/ai-native"` 항목 추가 (line 13 아래에 다음 한 줄 추가):
+**2) `legacyHashRoutes` Map의 `["#/plant-energy", ...]` 다음 줄에 추가**:
 
 ```jsx
   ["#/ai-native", "/ai-native"],
 ```
 
-`redirectLegacyHashRoute` 함수 안 `specManagerSlideMatch` 라인(line 22 부근) 다음에 `aiNativeSlideMatch` 추가:
+**3) `redirectLegacyHashRoute` 함수 본문의 `specManagerSlideMatch` 선언 다음 줄에 `aiNativeSlideMatch` 선언을 추가**하고, **`const nextPath = specManagerSlideMatch ? ... : legacyHashRoutes.get(hashPath);` 한 줄을 다음 다중 분기로 교체**:
 
 ```jsx
   const aiNativeSlideMatch = hashPath.match(/^#\/ai-native\/(\d+)$/);
@@ -486,7 +533,7 @@ import AiNativePresentation from "./AiNativePresentation.jsx";
     : legacyHashRoutes.get(hashPath);
 ```
 
-`createBrowserRouter` 의 routes 배열에 두 항목 추가 (line 41 다음에):
+**4) `createBrowserRouter`의 routes 배열에서 `{ path: "/plant-energy", ... },` 다음 줄에 두 항목 추가** (와일드카드 `path: "*"` 항목보다 위에 위치해야 한다):
 
 ```jsx
     { path: "/ai-native", element: <AiNativePresentation /> },
@@ -955,15 +1002,53 @@ function renderSlide(slide) {
 }
 ```
 
-- [ ] **Step 10: 빌드 + 시각 검증**
+- [ ] **Step 10: 빌드 + 임시 시각 검증 (kind 렌더 sanity)**
 
-```bash
-npm run build && npm run dev
+데이터가 비어 있으면 렌더가 안 보여 syntax-only 통과가 되므로, **임시로 7개 placeholder 슬라이드를 `aiNativeSlides.js`의 `slides` 배열에 push** 한 뒤 시각 확인하고 다시 제거한다 (commit 직전에 제거).
+
+`aiNativeSlides.js`의 `slides` 배열을 임시로 다음으로 교체 (Chunk 3에서 다시 채울 예정이므로 일회용 placeholder):
+
+```js
+export const slides = [
+  { kind: "hero", variant: "title", eyebrow: "임시", title: "Hero kind sanity" },
+  { kind: "quote", eyebrow: "임시", quote: "Quote kind sanity" },
+  { kind: "stats-grid", eyebrow: "임시", title: "Stats sanity", stats: [{ value: "+50%", label: "임시 지표" }] },
+  { kind: "list-rows", variant: "definition", eyebrow: "임시", title: "List sanity", rows: [{ badge: "①", label: "A", body: "임시 행" }] },
+  { kind: "cards-grid", eyebrow: "임시", title: "Cards sanity", cards: [{ tag: "01", title: "A", body: "임시", accent: "indigo" }] },
+  { kind: "compare-rows", eyebrow: "임시", title: "Compare sanity", headers: ["X", "Y"], rows: [["a", "b"]] },
+  { kind: "references", eyebrow: "임시", title: "References sanity", groups: [{ label: "G", items: [{ title: "T", url: "#" }] }] },
+  { kind: "closing", message: "Closing sanity", qaQuestions: ["테스트?"] },
+];
 ```
 
-기대: 빌드 0 warning. dev 서버에서 `/ai-native` 가 여전히 hero 스캐폴딩 슬라이드 1장을 보여줘야 한다(아직 데이터가 비어 있음). 콘솔 에러 없음.
+```bash
+npm run dev
+```
+브라우저에서 `/ai-native` → 슬라이드 8장을 화살표 키로 넘기며 시각 확인:
+- 1: Hero, 2: Quote, 3: Stats(1개 카드), 4: List, 5: Cards, 6: Compare, 7: References, 8: Closing
+- 콘솔 에러 없음
 
-- [ ] **Step 11: Commit**
+**검증 통과 후 placeholder 배열을 원상복귀** (Chunk 1 Task 2의 초기 스캐폴딩 1장으로 되돌림):
+
+```js
+export const slides = [
+  {
+    kind: "hero",
+    variant: "title",
+    eyebrow: "사내 발표",
+    title: PRESENTATION_META.TITLE,
+    subtitle: "(스캐폴딩 — Chunk 3에서 채움)",
+  },
+];
+```
+
+빌드:
+```bash
+npm run build
+```
+0 warning, 0 error.
+
+- [ ] **Step 11: Commit (kind 렌더러만, placeholder 데이터는 포함 X)**
 
 ```bash
 git add src/AiNativePresentation.jsx
@@ -972,7 +1057,8 @@ git commit -m "AI Native 발표 8개 kind 렌더러 일괄 구현
 QuoteSlide / StatsGridSlide / ListRowsSlide / CardsGridSlide /
 CompareRowsSlide / ReferencesSlide / ClosingSlide 추가.
 공통 헬퍼 SlideHeader · SourceFooter 도입.
-renderSlide switch에 case 8개 매핑."
+renderSlide switch에 case 8개 매핑.
+임시 placeholder 데이터로 8 kind 모두 시각 검증 완료(데이터는 Chunk 3에서)."
 ```
 
 ---
@@ -1078,7 +1164,7 @@ ACT 0의 마지막 항목 뒤(`},` 다음)에 다음을 이어붙인다:
     source: {
       label: "How AI Is Transforming Work at Anthropic",
       year: "2025.08 조사",
-      disclaimer: "Anthropic 내부 자체 데이터. LLM 회사 직원·자기 도구 측정의 일반화 한계 있음.",
+      disclaimer: `2025.08 시점 데이터(Sonnet ${MODELS.SONNET}·Opus ${MODELS.OPUS} 이전). Anthropic 내부 자체 데이터, LLM 회사 직원의 자기 도구 측정 — 일반화 한계 있음.`,
     },
   },
   {
@@ -1461,7 +1547,7 @@ spec §4의 ACT 5 — 마무리.
     intro: "도구·기술은 본문에서 이미 다뤘다. 누가 / 언제 / 무엇을 측정할지만 남았다.",
     rows: [
       { badge: "이번 주", label: "spec owner 지정", body: "우리 팀 최초 spec 1건을 docs/ 하위에 commit — 컨텍스트 단계의 출발" },
-      { badge: "이번 분기", label: "Eval 베이스라인 측정", body: "20~50개 task로 첫 pass@k / pass^k 베이스라인 + 모델 라우팅(Sonnet 4.6 기본 + Opus 4.7 어려운 작업)" },
+      { badge: "이번 분기", label: "Eval 베이스라인 측정", body: `20~50개 task로 첫 pass@k / pass^k 베이스라인 + 모델 라우팅(Sonnet ${MODELS.SONNET} 기본 + Opus ${MODELS.OPUS} 어려운 작업)` },
       { badge: "6개월", label: "Failure mode 누적 + 사전 동료 청취 정착", body: "베이스라인 측정 후 N 확정. 사전 동료 청취 1회를 모든 발표/큰 작업의 디폴트로" },
     ],
     outro: "본문 매핑: 컨텍스트(13) · 실행(15) · 검증(16·17) · 반영(18) · 학습(19).",
@@ -1558,7 +1644,7 @@ git commit -m "AI Native 슬라이드 ACT 5 — 마무리 3장 추가, 26장 데
 
 - [ ] **Step 1: presentationDownloads.aiNative 추가**
 
-`src/downloadUtils.js` line 14(`specManager` 항목 다음)에 추가:
+`src/downloadUtils.js`의 `specManager: { ... },` 객체 다음 줄에 추가:
 
 ```js
   aiNative: {
@@ -1570,19 +1656,21 @@ git commit -m "AI Native 슬라이드 ACT 5 — 마무리 3장 추가, 26장 데
 
 - [ ] **Step 2: App.jsx 홈 카드 항목 추가**
 
-`src/App.jsx`의 `menus` 배열(line 324)에 다음 항목을 마지막 `},` 다음(즉 `]` 직전)에 추가:
+`src/App.jsx`의 `HomePage` 컴포넌트 안 `menus` 배열에서 **"스펙매니저 발표 자료" 항목 다음**(배열 닫는 `]` 직전)에 추가:
 
 ```js
     {
       href: "/ai-native",
       title: "AI Native: 운영체계의 교체",
       subtitle: "도구가 아니라 PDLC 전체의 재설계. Anthropic 1차 자료로 실증.",
-      accent: palette.amber,
+      accent: palette.blue,
       meta: "발표 슬라이드 · 26장 · 25분(±5)",
       external: false,
       downloads: presentationDownloads.aiNative,
     },
 ```
+
+> 색 결정 근거(Spec 해석 노트 참조): App.jsx의 home palette는 Presentation.jsx의 slide palette와 별개. 기존 카드들과 차별 + 발표류 두 카드(스펙매니저=green, 멀티에이전트=blue, AI Native=blue 계열은 같은 발표 계열 묶음)로 시각 그룹화. `palette.blue`(=`#315f82`) 사용. spec §9의 "palette.indigo" 표현은 슬라이드 palette를 가리키는 것으로 해석.
 
 - [ ] **Step 3: 시각 검증**
 
@@ -1658,33 +1746,34 @@ spec §9의 검증 기준 12개 항목을 순서대로 확인하고 통과 여�
 | 라우팅 | `npm run dev` 후 `/ai-native` 접속 | 슬라이드 1 첫 화면 |
 | 슬라이드 수 | 카운터에서 `/26` 확인 | 26 정확히 |
 | 빌드 | `npm run build` | 0 warning 0 error |
-| 출처 표기 | grep `source:` in `aiNativeSlides.js` | 정량 슬라이드(4·5·9·12·15·16·17) 100% source 존재 |
+| 출처 표기 | dev 서버 콘솔 확인 (Task 2의 import.meta.env.DEV warn) | `[aiNativeSlides] source 누락:` 로그 없음 |
 | 1차 자료 검증 | `git log -- docs/superpowers/specs/2026-05-19-ai-native-sources.md` | commit 존재 |
 
-`source` 존재 자동 점검 명령:
+**출처 표기 검증 방법 (ESM 호환)**:
+Task 2 Step 1에서 `aiNativeSlides.js` 하단에 `import.meta.env.DEV` 가드의 console.warn 코드를 이미 넣었다. `npm run dev` 실행 후 브라우저 콘솔에서 다음을 확인:
 
-```bash
-node -e "
-const { slides } = require('./src/aiNativeSlides.js');
-const requireSource = ['stats-grid', 'compare-rows'];
-const requireSourceVariants = ['cycle-step', 'counterevidence', 'persona-quant'];
-let issues = 0;
-slides.forEach((s, i) => {
-  const needsSource = requireSource.includes(s.kind) ||
-    (s.kind === 'list-rows' && requireSourceVariants.includes(s.variant));
-  if (needsSource && !s.source) {
-    console.warn(\`Slide \${i+1} (\${s.kind}\${s.variant ? '/' + s.variant : ''}): source 필드 누락\`);
-    issues++;
-  }
-});
-console.log(issues === 0 ? '✓ 출처 표기 100% OK' : \`✗ \${issues}건 누락\`);
-"
+```
+[aiNativeSlides] source 누락: …  ← 이 로그가 출력되면 누락 있음
+(아무 로그 없음)                  ← 통과
 ```
 
-> 참고: `aiNativeSlides.js` 가 ESM이므로 node로 직접 require 안 될 수 있다. 그 경우 dev 서버에서 console 확인하거나 vite-node 사용 또는 별도 검증 스크립트는 후속 작업으로 두고 수동 grep 으로 갈음한다:
-> ```bash
-> grep -n "kind:\\|variant:\\|source:" src/aiNativeSlides.js | head -100
-> ```
+만약 빌드 시 정적 검증도 필요하면(선택), 임시 검증 스크립트로:
+
+```bash
+node --input-type=module -e "
+import('./src/aiNativeSlides.js').then(({ slides }) => {
+  const need = new Set(['stats-grid', 'compare-rows']);
+  const needVar = new Set(['counterevidence', 'cycle-step', 'persona-quant', 'eval-metric']);
+  const miss = [];
+  slides.forEach((s, i) => {
+    const x = need.has(s.kind) || (s.kind === 'list-rows' && needVar.has(s.variant));
+    if (x && !s.source) miss.push(\`#\${i+1} \${s.kind}\${s.variant ? '/' + s.variant : ''}\`);
+  });
+  console.log(miss.length === 0 ? '✓ 출처 표기 100% OK' : '✗ 누락: ' + miss.join(', '));
+}).catch(e => { console.error(e); process.exit(1); });
+"
+```
+(node 18+ 필요. 동작하면 dev warn과 동일 결과여야 함)
 
 - [ ] **Step 2: 시각 검증 항목 (4개)**
 
@@ -1695,22 +1784,29 @@ console.log(issues === 0 ? '✓ 출처 표기 100% OK' : \`✗ \${issues}건 누
 | 다운로드 | PDF 저장 + HTML 다운로드 버튼 | 양쪽 동작 (Task 13 결과 인계) |
 | 인쇄 | `?print=1` 진입 | 26장 펼침, `data-export-hidden` 요소 미노출 |
 
-- [ ] **Step 3: palette 키 일치 검증**
+- [ ] **Step 3: palette 키 일치 검증 (sentinel 기반 블록 추출)**
 
 spec §9 요구: Presentation.jsx 의 palette 키 diff = 0.
 
+`const palette = {` 부터 가장 가까운 `};` 까지의 블록만 정확히 추출하여 키 비교:
+
 ```bash
-# Presentation.jsx 의 palette 키 추출
-grep -E "^\s+\w+:" src/Presentation.jsx | head -25 | awk -F: '{print $1}' | sed 's/^[[:space:]]*//' | sort > /tmp/presentation-keys.txt
+extract_palette_keys() {
+  awk '/^const palette = \{/,/^\};/' "$1" \
+    | grep -E "^\s+[a-zA-Z]+:" \
+    | awk -F: '{print $1}' \
+    | sed 's/^[[:space:]]*//' \
+    | sort
+}
 
-# AiNativePresentation.jsx 의 palette 키 추출
-grep -E "^\s+\w+:" src/AiNativePresentation.jsx | head -25 | awk -F: '{print $1}' | sed 's/^[[:space:]]*//' | sort > /tmp/ai-native-keys.txt
-
-# Diff
-diff /tmp/presentation-keys.txt /tmp/ai-native-keys.txt
+extract_palette_keys src/Presentation.jsx > /tmp/pres-keys.txt
+extract_palette_keys src/AiNativePresentation.jsx > /tmp/ai-keys.txt
+diff /tmp/pres-keys.txt /tmp/ai-keys.txt && echo "✓ palette 키 동일" || echo "✗ palette 키 diff 있음"
 ```
 
-기대: diff 결과 empty (양쪽 키 동일).
+기대: "✓ palette 키 동일" 출력 (diff empty). 만약 diff가 있으면 `AiNativePresentation.jsx`의 palette 객체 키를 보정한다.
+
+> 참고: `extract_palette_keys`는 함수이므로 새 쉘 세션마다 정의 필요. zsh/bash 양쪽 호환.
 
 - [ ] **Step 4: 수동 검증 항목 (3개)**
 
@@ -1724,12 +1820,17 @@ diff /tmp/presentation-keys.txt /tmp/ai-native-keys.txt
 
 - [ ] **Step 5: 검증 통과 commit**
 
-검증 통과 후 (수정사항이 있었다면 수정한 뒤) 다음 커밋으로 plan 완료를 마킹한다:
+검증 통과 후 (수정사항이 있었다면 수정한 뒤) 다음 커밋으로 plan 완료를 마킹한다.
+**Task 13의 PDF/HTML 다운로드 검증 결과도 본 commit 메시지에 명시**하여 git history에 추적성 확보.
 
 ```bash
 git commit --allow-empty -m "AI Native 발표 구현 완료 — spec §9 수용 조건 통과
 
-- 자동 검증 5개 / 시각 검증 4개 / palette diff = 0 / 수동 검증 게이트 명시"
+검증 결과:
+- 자동 5: 라우팅 / 26장 카운터 / 빌드 0warn / dev warn 로그 없음 / sources.md commit 존재
+- 시각 4: 키 네비 7종 / 홈 카드 노출 / PDF 인쇄 (?print=1 펼침 + 자동 인쇄) / HTML 다운로드 (filename 분기 정상)
+- palette: extract_palette_keys diff = 0
+- 수동 게이트 명시: 한국어 검수 2인 sign-off / Act 4 사전 동료 청취 / 25분 ±5 리허설"
 ```
 
 ---
