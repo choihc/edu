@@ -12,6 +12,11 @@ export const presentationDownloads = {
     html: "/spec-manager?export=html",
     pdf: "/spec-manager?print=1",
   },
+  aiNative: {
+    html: "/ai-native?export=html",
+    pdf: "/ai-native?print=1",
+    filename: "ai-native-presentation.html",
+  },
 };
 
 function triggerBlobDownload(blob, filename) {

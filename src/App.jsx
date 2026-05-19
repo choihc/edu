@@ -365,6 +365,15 @@ export function HomePage() {
       external: false,
       downloads: presentationDownloads.specManager,
     },
+    {
+      href: "/ai-native",
+      title: "AI Native: 운영체계의 교체",
+      subtitle: "도구가 아니라 PDLC 전체의 재설계. Anthropic 1차 자료로 실증.",
+      accent: palette.blue,
+      meta: "발표 슬라이드 · 26장 · 25분(±5)",
+      external: false,
+      downloads: presentationDownloads.aiNative,
+    },
   ];
 
   return (
