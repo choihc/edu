@@ -35,23 +35,23 @@ function HeroSlide({ s }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", padding: "0 8%", textAlign: "center" }}>
       {s.eyebrow && (
-        <div style={{ color: eyebrowColor, fontWeight: 800, letterSpacing: "0.08em", fontSize: 14, marginBottom: 18 }}>
+        <div style={{ color: eyebrowColor, fontWeight: 800, letterSpacing: "0.08em", fontSize: 16, marginBottom: 18 }}>
           {s.eyebrow}
         </div>
       )}
-      <h1 style={{ fontSize: "clamp(40px, 5vw, 72px)", lineHeight: 1.1, color: palette.text, margin: 0, letterSpacing: "-0.01em" }}>
+      <h1 style={{ fontSize: "clamp(48px, 5.5vw, 80px)", lineHeight: 1.1, color: palette.text, margin: 0, letterSpacing: "-0.01em" }}>
         {s.title}
       </h1>
       {s.subtitle && (
-        <div style={{ fontSize: "clamp(18px, 2vw, 26px)", color: palette.textSub, marginTop: 18 }}>
+        <div style={{ fontSize: "clamp(22px, 2.4vw, 32px)", color: palette.textSub, marginTop: 18 }}>
           {s.subtitle}
         </div>
       )}
       {s.tagline && (
-        <div style={{ fontSize: 16, color: palette.textMuted, marginTop: 12 }}>{s.tagline}</div>
+        <div style={{ fontSize: 18, color: palette.textMuted, marginTop: 12 }}>{s.tagline}</div>
       )}
       {s.desc && (
-        <p style={{ color: palette.textMuted, fontSize: 16, lineHeight: 1.8, maxWidth: 720, marginTop: 22 }}>
+        <p style={{ color: palette.textMuted, fontSize: 18, lineHeight: 1.8, maxWidth: 720, marginTop: 22 }}>
           {s.desc}
         </p>
       )}
@@ -63,12 +63,12 @@ function QuoteSlide({ s }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", height: "100%", padding: "0 10%", textAlign: "center" }}>
       {s.eyebrow && (
-        <div style={{ color: palette.indigo, fontWeight: 800, letterSpacing: "0.08em", fontSize: 14, marginBottom: 22 }}>
+        <div style={{ color: palette.indigo, fontWeight: 800, letterSpacing: "0.08em", fontSize: 16, marginBottom: 22 }}>
           {s.eyebrow}
         </div>
       )}
       <blockquote style={{
-        fontSize: "clamp(28px, 3.4vw, 44px)",
+        fontSize: "clamp(34px, 4vw, 52px)",
         lineHeight: 1.4,
         color: palette.text,
         margin: 0,
@@ -78,8 +78,13 @@ function QuoteSlide({ s }) {
         "{s.quote}"
       </blockquote>
       {s.attribution && (
-        <div style={{ marginTop: 28, color: palette.textMuted, fontSize: 16, fontWeight: 700 }}>
+        <div style={{ marginTop: 28, color: palette.textMuted, fontSize: 18, fontWeight: 700 }}>
           — {s.attribution}
+        </div>
+      )}
+      {s.note && (
+        <div style={{ marginTop: 32, color: palette.textFaint, fontSize: 15, lineHeight: 1.6 }}>
+          {s.note}
         </div>
       )}
     </div>
@@ -109,12 +114,15 @@ function StatsGridSlide({ s }) {
             flexDirection: "column",
             gap: 8,
           }}>
-            <div style={{ fontSize: "clamp(28px, 2.6vw, 38px)", color: palette.indigo, fontWeight: 900, letterSpacing: "-0.02em" }}>
+            <div style={{ fontSize: "clamp(32px, 3vw, 46px)", color: palette.indigo, fontWeight: 900, letterSpacing: "-0.02em" }}>
               {stat.value}
             </div>
-            <div style={{ fontSize: 14, color: palette.textSub, fontWeight: 700 }}>{stat.label}</div>
+            <div style={{ fontSize: 16, color: palette.textSub, fontWeight: 700 }}>{stat.label}</div>
             {stat.delta && (
-              <div style={{ fontSize: 12, color: palette.emerald, fontWeight: 700 }}>{stat.delta}</div>
+              <div style={{ fontSize: 14, color: palette.emerald, fontWeight: 700 }}>{stat.delta}</div>
+            )}
+            {stat.body && (
+              <div style={{ fontSize: 14, color: palette.textMuted, lineHeight: 1.6, marginTop: 2 }}>{stat.body}</div>
             )}
           </div>
         ))}
@@ -141,7 +149,7 @@ function ListRowsSlide({ s }) {
     <div style={{ padding: "48px 8%", display: "flex", flexDirection: "column", height: "100%" }}>
       <SlideHeader eyebrow={s.eyebrow} title={s.title} subtitle={s.subtitle} accent={accent} />
       {s.intro && (
-        <p style={{ color: palette.textMuted, fontSize: 16, lineHeight: 1.7, margin: "8px 0 18px", maxWidth: 880 }}>
+        <p style={{ color: palette.textMuted, fontSize: 18, lineHeight: 1.7, margin: "8px 0 18px", maxWidth: 880 }}>
           {s.intro}
         </p>
       )}
@@ -163,7 +171,7 @@ function ListRowsSlide({ s }) {
                 color: accent,
                 borderRadius: 999,
                 padding: "2px 10px",
-                fontSize: 11,
+                fontSize: 13,
                 fontWeight: 800,
                 whiteSpace: "nowrap",
                 marginTop: 2,
@@ -173,15 +181,15 @@ function ListRowsSlide({ s }) {
             )}
             <div style={{ flex: 1 }}>
               {row.label && (
-                <div style={{ fontWeight: 800, color: palette.text, fontSize: 16, marginBottom: row.body ? 6 : 0 }}>
+                <div style={{ fontWeight: 800, color: palette.text, fontSize: 18, marginBottom: row.body ? 6 : 0 }}>
                   {row.label}
                 </div>
               )}
               {row.body && (
-                <div style={{ color: palette.textSub, fontSize: 15, lineHeight: 1.7 }}>{row.body}</div>
+                <div style={{ color: palette.textSub, fontSize: 17, lineHeight: 1.7 }}>{row.body}</div>
               )}
               {row.source && (
-                <div style={{ marginTop: 6, color: palette.textFaint, fontSize: 12 }}>
+                <div style={{ marginTop: 6, color: palette.textFaint, fontSize: 14 }}>
                   ↳ {row.source.label}{row.source.year ? ` · ${row.source.year}` : ""}
                 </div>
               )}
@@ -190,7 +198,7 @@ function ListRowsSlide({ s }) {
         ))}
       </div>
       {s.outro && (
-        <p style={{ color: palette.textMuted, fontSize: 14, lineHeight: 1.7, marginTop: 18, fontStyle: "italic" }}>
+        <p style={{ color: palette.textMuted, fontSize: 16, lineHeight: 1.7, marginTop: 18, fontStyle: "italic" }}>
           {s.outro}
         </p>
       )}
@@ -226,22 +234,22 @@ function CardsGridSlide({ s }) {
               flexDirection: "column",
               gap: 10,
             }}>
-              {card.icon && <div style={{ fontSize: 26 }}>{card.icon}</div>}
-              <div style={{ fontWeight: 900, color: accent, fontSize: 12, letterSpacing: "0.06em" }}>
+              {card.icon && <div style={{ fontSize: 30 }}>{card.icon}</div>}
+              <div style={{ fontWeight: 900, color: accent, fontSize: 14, letterSpacing: "0.06em" }}>
                 {card.tag ?? ""}
               </div>
-              <div style={{ fontWeight: 800, color: palette.text, fontSize: 18, lineHeight: 1.4 }}>
+              <div style={{ fontWeight: 800, color: palette.text, fontSize: 20, lineHeight: 1.4 }}>
                 {card.title}
               </div>
               {card.body && (
-                <div style={{ color: palette.textSub, fontSize: 14, lineHeight: 1.7 }}>{card.body}</div>
+                <div style={{ color: palette.textSub, fontSize: 16, lineHeight: 1.7 }}>{card.body}</div>
               )}
               {card.link && (
                 <a href={card.link.href} style={{
                   marginTop: "auto",
                   color: accent,
                   fontWeight: 800,
-                  fontSize: 13,
+                  fontSize: 15,
                   textDecoration: "none",
                 }}>
                   {card.link.label} →
@@ -263,7 +271,7 @@ function CompareRowsSlide({ s }) {
     <div style={{ padding: "48px 8%", display: "flex", flexDirection: "column", height: "100%" }}>
       <SlideHeader eyebrow={s.eyebrow} title={s.title} subtitle={s.subtitle} />
       <div style={{ marginTop: 32, overflow: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 15 }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 17 }}>
           <thead>
             <tr>
               {headers.map((h, i) => (
@@ -274,7 +282,7 @@ function CompareRowsSlide({ s }) {
                   color: palette.indigo,
                   fontWeight: 900,
                   borderBottom: `2px solid ${palette.indigo}`,
-                  fontSize: 14,
+                  fontSize: 16,
                 }}>{h}</th>
               ))}
             </tr>
@@ -318,7 +326,7 @@ function ReferencesSlide({ s }) {
             borderRadius: 10,
             padding: 18,
           }}>
-            <div style={{ fontWeight: 900, color: palette.indigo, fontSize: 13, letterSpacing: "0.06em", marginBottom: 12 }}>
+            <div style={{ fontWeight: 900, color: palette.indigo, fontSize: 15, letterSpacing: "0.06em", marginBottom: 12 }}>
               {group.label}
             </div>
             <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 8 }}>
@@ -327,7 +335,7 @@ function ReferencesSlide({ s }) {
                   <a href={item.url ?? "#"} target="_blank" rel="noopener noreferrer" style={{
                     color: palette.textSub,
                     textDecoration: "none",
-                    fontSize: 14,
+                    fontSize: 16,
                     lineHeight: 1.5,
                     borderBottom: `1px dashed ${palette.border}`,
                     paddingBottom: 2,
@@ -347,12 +355,12 @@ function ReferencesSlide({ s }) {
 function ClosingSlide({ s }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", height: "100%", padding: "0 10%", textAlign: "center" }}>
-      <h2 style={{ fontSize: "clamp(36px, 4.5vw, 60px)", lineHeight: 1.2, color: palette.text, margin: 0, letterSpacing: "-0.01em" }}>
+      <h2 style={{ fontSize: "clamp(40px, 5vw, 66px)", lineHeight: 1.2, color: palette.text, margin: 0, letterSpacing: "-0.01em" }}>
         {s.message}
       </h2>
       {s.qaQuestions && s.qaQuestions.length > 0 && (
         <div style={{ marginTop: 36, display: "flex", flexDirection: "column", gap: 12, alignItems: "center" }}>
-          <div style={{ color: palette.textMuted, fontWeight: 800, fontSize: 14, letterSpacing: "0.08em" }}>
+          <div style={{ color: palette.textMuted, fontWeight: 800, fontSize: 16, letterSpacing: "0.08em" }}>
             Q&amp;A 시작 질문
           </div>
           {s.qaQuestions.map((q, i) => (
@@ -363,7 +371,7 @@ function ClosingSlide({ s }) {
               borderRadius: 999,
               padding: "10px 22px",
               fontWeight: 700,
-              fontSize: 15,
+              fontSize: 17,
             }}>
               {q}
             </div>
@@ -378,17 +386,17 @@ function SlideHeader({ eyebrow, title, subtitle, accent }) {
   return (
     <div>
       {eyebrow && (
-        <div style={{ color: accent ?? palette.indigo, fontWeight: 800, letterSpacing: "0.08em", fontSize: 13, marginBottom: 10 }}>
+        <div style={{ color: accent ?? palette.indigo, fontWeight: 800, letterSpacing: "0.08em", fontSize: 15, marginBottom: 10 }}>
           {eyebrow}
         </div>
       )}
       {title && (
-        <h2 style={{ fontSize: "clamp(26px, 2.6vw, 38px)", lineHeight: 1.25, color: palette.text, margin: 0, letterSpacing: "-0.01em" }}>
+        <h2 style={{ fontSize: "clamp(30px, 3vw, 46px)", lineHeight: 1.25, color: palette.text, margin: 0, letterSpacing: "-0.01em" }}>
           {title}
         </h2>
       )}
       {subtitle && (
-        <div style={{ fontSize: 16, color: palette.textSub, marginTop: 8 }}>{subtitle}</div>
+        <div style={{ fontSize: 18, color: palette.textSub, marginTop: 8 }}>{subtitle}</div>
       )}
     </div>
   );
@@ -400,7 +408,7 @@ function SourceFooter({ source }) {
     <div style={{
       marginTop: 22,
       color: palette.textFaint,
-      fontSize: 12,
+      fontSize: 13,
       borderTop: `1px dashed ${palette.border}`,
       paddingTop: 10,
     }}>
@@ -442,7 +450,7 @@ function renderSlide(slide) {
 function SlideShell({ idx, total, slide, children, onPrev, onNext }) {
   return (
     <div style={{
-      minHeight: "100vh",
+      height: "100vh",
       background: palette.bg,
       color: palette.text,
       fontFamily: "'Pretendard', 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif",

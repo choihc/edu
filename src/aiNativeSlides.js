@@ -8,7 +8,7 @@ export const MODELS = {
 };
 
 export const PRESENTATION_META = {
-  TOTAL_SLIDES: 26,
+  TOTAL_SLIDES: 27,
   TARGET_MINUTES: 25,
   TITLE: "AI Native: 도구의 교체가 아니라 운영체계의 교체",
 };
@@ -30,6 +30,7 @@ export const slides = [
     kind: "quote",
     eyebrow: "한 줄 메시지",
     quote: "AI 기능을 붙이는 것은 AI Native가 아니다.\nPDLC 전체를 다시 설계하는 것이 AI Native다.",
+    note: "* PDLC (Product Development Lifecycle): 아이디어 발굴 → 기획 → 디자인 → 개발 → 출시 → 피드백까지 이어지는 제품 개발 전 과정",
   },
 
   // ─── ACT 1. 왜 지금 — 패러다임 (5장) ──────────────────────
@@ -142,10 +143,26 @@ export const slides = [
     title: "개발자(FE)는 Claude로 무엇을 하나",
     subtitle: "코드 작성자 → AI 시스템 오케스트레이터",
     stats: [
-      { value: "55%", label: "일일 사용: 디버깅" },
-      { value: "42%", label: "일일 사용: 코드 이해" },
-      { value: "37%", label: "일일 사용: 기능 구현" },
-      { value: "10%", label: "일일 사용: 코드 설계·계획" },
+      {
+        value: "55%",
+        label: "일일 사용: 디버깅",
+        body: "개발자 55%가 매일 Claude에게 버그 원인 분석·스택 트레이스 해석·재현 시나리오 작성을 맡긴다.",
+      },
+      {
+        value: "42%",
+        label: "일일 사용: 코드 이해",
+        body: "처음 보는 코드베이스나 레거시 로직을 Claude에게 설명시켜 온보딩 시간을 단축한다.",
+      },
+      {
+        value: "37%",
+        label: "일일 사용: 기능 구현",
+        body: "새 기능의 초안 코드를 Claude가 생성하고, 개발자는 검토·통합·테스트에 집중한다.",
+      },
+      {
+        value: "10%",
+        label: "일일 사용: 코드 설계·계획",
+        body: "아키텍처 결정이나 인터페이스 설계 단계에서 Claude를 사고 파트너로 활용하는 비율. 아직 초기 수준.",
+      },
     ],
     source: { label: "How AI Is Transforming Work at Anthropic", year: "2025.08" },
   },
@@ -349,6 +366,30 @@ export const slides = [
       { badge: "6개월", label: "Failure mode 누적 + 사전 동료 청취 정착", body: "베이스라인 측정 후 N 확정. 사전 동료 청취 1회를 모든 발표/큰 작업의 디폴트로" },
     ],
     outro: "본문 매핑: 컨텍스트(13) · 실행(15) · 검증(16·17) · 반영(18) · 학습(19).",
+  },
+  {
+    kind: "list-rows",
+    variant: "roadmap-org",
+    eyebrow: "ACT 5 · 우리 팀",
+    title: "우리 팀이 시작할 3가지 액션 아이템",
+    intro: "AI Native 운영체계 전환을 위한 구체적인 첫 걸음. 발표 직후 착수한다.",
+    rows: [
+      {
+        badge: "액션 1",
+        label: "/docs를 팀 지식 라이브러리로",
+        body: "스펙(spec)·계획(plan) 문서를 /docs 하위에 일관되게 보관한다. 합의된 의도가 코드베이스와 함께 버저닝되어 다음 작업의 컨텍스트 입력이 된다. 한 번 쌓인 문서는 팀 전체의 자산.",
+      },
+      {
+        badge: "액션 2",
+        label: "유닛·E2E 테스트로 결과물 자동 검증",
+        body: "기능 구현마다 테스트 케이스를 확보해 리그레션을 사전 차단한다. 신규 기능 퀄리티를 사람이 매번 수동 확인하지 않아도 자동으로 보증되는 구조를 만든다.",
+      },
+      {
+        badge: "액션 3",
+        label: "파트별 SPIR 사이클 기본 페르소나·에이전트 공유",
+        body: "기획·개발·디자인 각 파트가 공통으로 사용할 SPIR 사이클의 기본 페르소나와 에이전트 구성을 팀 수준에서 공유한다. 디테일한 추가 항목은 각자의 취향과 업무에 맞게 커스터마이징.",
+      },
+    ],
   },
   {
     kind: "references",
