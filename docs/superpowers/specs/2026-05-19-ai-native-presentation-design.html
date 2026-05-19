@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AI Native 발표 슬라이드 — 디자인 스펙</title>
+<style>
+  :root {
+    --bg: #f7f7f8;
+    --paper: #ffffff;
+    --ink: #161616;
+    --text: #242424;
+    --muted: #6b6b73;
+    --line: #e4e4ea;
+    --line-strong: #cfcfd7;
+    --indigo: #4f46e5;
+    --pink: #db2777;
+    --emerald: #059669;
+    --amber: #d97706;
+    --violet: #7c3aed;
+    --sky: #0284c7;
+    --red: #b83a2f;
+    --bg-indigo: #eef2ff;
+    --bg-amber: #fffbeb;
+    --bg-emerald: #ecfdf5;
+    --bg-pink: #fdf2f8;
+    --bg-violet: #f5f3ff;
+    --bg-sky: #e0f2fe;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text);
+    font-family: -apple-system, "Pretendard", "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
+    line-height: 1.7; font-size: 16px; }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 48px 24px 80px; }
+
+  header.hero { background: linear-gradient(135deg, var(--indigo), var(--violet));
+    color: #fff; border-radius: 16px; padding: 36px 32px; margin-bottom: 32px; }
+  header.hero .eyebrow { font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase;
+    opacity: 0.78; font-weight: 800; margin-bottom: 10px; }
+  header.hero h1 { font-size: 32px; line-height: 1.2; margin: 0 0 12px; letter-spacing: -0.01em; }
+  header.hero .meta { display: flex; flex-wrap: wrap; gap: 16px 24px; margin-top: 18px;
+    font-size: 13px; opacity: 0.88; }
+  header.hero .meta b { font-weight: 800; opacity: 1; }
+
+  nav.toc { background: var(--paper); border: 1px solid var(--line); border-radius: 12px;
+    padding: 22px 26px; margin-bottom: 32px; }
+  nav.toc h2 { font-size: 14px; margin: 0 0 14px; color: var(--muted); font-weight: 800;
+    letter-spacing: 0.08em; text-transform: uppercase; }
+  nav.toc ol { margin: 0; padding: 0 0 0 20px; columns: 2; column-gap: 28px; }
+  nav.toc li { margin-bottom: 6px; font-size: 14px; break-inside: avoid; }
+  nav.toc a { color: var(--text); text-decoration: none; border-bottom: 1px solid transparent; }
+  nav.toc a:hover { border-color: var(--indigo); color: var(--indigo); }
+
+  section.summary { background: var(--paper); border-left: 4px solid var(--indigo);
+    border-radius: 0 12px 12px 0; padding: 20px 26px; margin-bottom: 32px; }
+  section.summary h2 { font-size: 14px; margin: 0 0 8px; color: var(--indigo); font-weight: 800;
+    letter-spacing: 0.08em; text-transform: uppercase; }
+  section.summary p { margin: 6px 0; font-size: 15px; }
+
+  section.section { background: var(--paper); border: 1px solid var(--line);
+    border-radius: 12px; padding: 26px 28px; margin-bottom: 22px; }
+  section.section h2 { margin: 0 0 6px; font-size: 22px; color: var(--ink); letter-spacing: -0.01em; }
+  section.section h2 .num { color: var(--muted); font-weight: 700; margin-right: 8px; }
+  section.section h3 { margin: 22px 0 8px; font-size: 16px; color: var(--ink); }
+  section.section p { margin: 8px 0; }
+  section.section ul, section.section ol { padding-left: 22px; margin: 8px 0; }
+  section.section li { margin-bottom: 4px; }
+
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 14px; }
+  table th, table td { text-align: left; vertical-align: top; padding: 10px 12px;
+    border-bottom: 1px solid var(--line); }
+  table th { background: #f4f4f8; font-weight: 800; color: var(--ink); }
+  table tr:last-child td { border-bottom: none; }
+
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 999px;
+    font-size: 11px; font-weight: 800; letter-spacing: 0.04em; }
+  .badge.act { background: var(--bg-indigo); color: var(--indigo); }
+  .badge.critical { background: #fee2e2; color: #b91c1c; }
+  .badge.warning { background: #fef3c7; color: #92400e; }
+  .badge.info { background: #e0f2fe; color: #075985; }
+  .badge.kind { background: #f1f1f5; color: #444; font-family: ui-monospace, Menlo, monospace; }
+  .badge.src { background: var(--bg-emerald); color: var(--emerald); }
+
+  code { background: #f4f4f8; padding: 1px 6px; border-radius: 4px; font-size: 13px;
+    font-family: ui-monospace, Menlo, monospace; }
+  pre { background: #1e1e24; color: #f1f1f5; border-radius: 10px; padding: 18px 20px;
+    overflow-x: auto; font-size: 13px; line-height: 1.55; }
+  pre code { background: transparent; color: inherit; padding: 0; font-size: 13px; }
+
+  .act-block { border-left: 4px solid var(--line-strong); padding: 14px 18px; margin: 16px 0;
+    background: #fafafc; border-radius: 0 10px 10px 0; }
+  .act-block.act0 { border-color: #94a3b8; }
+  .act-block.act1 { border-color: var(--indigo); }
+  .act-block.act2 { border-color: var(--pink); }
+  .act-block.act3 { border-color: var(--emerald); }
+  .act-block.act4 { border-color: var(--amber); }
+  .act-block.act5 { border-color: var(--violet); }
+  .act-block h3 { margin-top: 0; }
+
+  .pill-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 10px; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid2 > div { background: #fafafc; border: 1px solid var(--line); border-radius: 10px;
+    padding: 14px 16px; }
+  .grid2 h4 { margin: 0 0 8px; font-size: 14px; color: var(--ink); }
+  .grid2 ul { margin: 0; padding-left: 18px; font-size: 13px; }
+
+  .note { font-size: 12.5px; color: var(--muted); margin-top: 6px; }
+  .anchor { position: relative; top: -16px; }
+
+  @media (max-width: 720px) {
+    .wrap { padding: 28px 16px 60px; }
+    header.hero h1 { font-size: 24px; }
+    nav.toc ol { columns: 1; }
+    .grid2 { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="eyebrow">Design Spec · 2026-05-19</div>
+  <h1>AI Native 발표 슬라이드 — 디자인 스펙</h1>
+  <div style="font-size:15px; opacity:0.92; max-width:620px;">
+    사내 개발팀 대상 20~30분 발표. 핵심 메시지는 <b>"AI Native는 도구의 교체가 아니라 운영체계의 교체"</b>.
+    Anthropic 1차 자료(2025–2026)로 실증하고, Superpowers spec/plan + 멀티에이전트 운영을 사내 사례로.
+  </div>
+  <div class="meta">
+    <span><b>대상</b> 사내 개발팀 (FE/BE 시니어 포함)</span>
+    <span><b>분량</b> 20~30분 · 25장</span>
+    <span><b>형식</b> React 라우트 <code style="background:rgba(255,255,255,0.18); color:#fff;">/ai-native</code></span>
+    <span><b>톤</b> 도발적 주장 + 실증</span>
+  </div>
+</header>
+
+<section class="summary">
+  <h2>Executive Summary</h2>
+  <p>① <b>운영체계의 교체</b> 메시지를 5막 25장으로 누적 설득한다.</p>
+  <p>② 정량 데이터는 <b>Anthropic 1차 자료</b>로만 채운다 (Economic Index, How AI Is Transforming Work at Anthropic, 2026 Agentic Coding Trends, Demystifying Evals, AI Coding Skills).</p>
+  <p>③ 본인 팀의 <b>Superpowers + 멀티에이전트 워크플로</b>를 핵심 사례(Act 4)로 사내 차별화.</p>
+  <p>④ 기존 <code>Presentation.jsx</code> 패턴(슬라이드 데이터·키 네비·PDF/HTML export) 그대로 계승하여 운영 비용 최소화.</p>
+</section>
+
+<nav class="toc">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="#s1">Executive Summary</a></li>
+    <li><a href="#s2">목표와 비목표</a></li>
+    <li><a href="#s3">대상과 톤</a></li>
+    <li><a href="#s4">슬라이드 구성 (5막 25장)</a></li>
+    <li><a href="#s5">데이터 모델</a></li>
+    <li><a href="#s6">컴포넌트 구조</a></li>
+    <li><a href="#s7">인용·출처 정책</a></li>
+    <li><a href="#s8">다운로드 동작</a></li>
+    <li><a href="#s9">검증 기준 (수용 조건)</a></li>
+    <li><a href="#s10">리스크와 완화</a></li>
+    <li><a href="#s11">비결정 사항</a></li>
+    <li><a href="#s12">다음 단계</a></li>
+  </ol>
+</nav>
+
+<section class="section" id="s2">
+<h2><span class="num">2.</span>목표와 비목표</h2>
+<h3>2.1 목표</h3>
+<ol>
+  <li><b>메시지 전달</b> — "AI Native = 운영체계 재설계" 단일 결론을 5막 구조로 누적 설득</li>
+  <li><b>실증 기반</b> — 모든 정량 데이터는 <b>Anthropic 1차 자료</b>로 출처 명시</li>
+  <li><b>사내 차별화</b> — Superpowers spec/plan + 멀티에이전트 페르소나를 핵심 사례로</li>
+  <li><b>운영 일관성</b> — 기존 <code>Presentation.jsx</code>, <code>MultiAgentProcess.jsx</code> 패턴 그대로</li>
+</ol>
+<h3>2.2 비목표</h3>
+<ul>
+  <li>AI/ML 모델 학습 알고리즘 강의 (튜토리얼 아님)</li>
+  <li>벤더 비교 (Copilot vs Claude 등) — Anthropic 1차 자료로만</li>
+  <li>인터랙티브 데모 — 정적 슬라이드만</li>
+  <li>다국어 — 한국어 단일</li>
+</ul>
+</section>
+
+<section class="section" id="s3">
+<h2><span class="num">3.</span>대상과 톤</h2>
+<table>
+  <tr><th>대상</th><td>사내 개발팀(FE/BE 시니어 포함, AI 도구 경험 다양)</td></tr>
+  <tr><th>분량</th><td>20~30분 (25장 내외)</td></tr>
+  <tr><th>톤</th><td>도발적 주장 + 실증 — "AI 기능을 붙이는 것은 AI Native가 아니다"</td></tr>
+  <tr><th>언어</th><td>한국어, 기술 용어는 한영 병기</td></tr>
+  <tr><th>디자인</th><td><code>Presentation.jsx</code> 톤 계승 (모던·컬러풀, 슬라이드 모드, 키보드 네비)</td></tr>
+</table>
+</section>
+
+<section class="section" id="s4">
+<h2><span class="num">4.</span>슬라이드 구성 (5막 25장)</h2>
+
+<div class="act-block act0">
+<h3><span class="badge act">ACT 0</span> Hook · 2장</h3>
+<table>
+  <thead><tr><th>#</th><th>kind</th><th>메시지 / 데이터</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td><span class="badge kind">title</span></td><td>"AI Native: 도구의 교체가 아니라 운영체계의 교체"</td></tr>
+    <tr><td>2</td><td><span class="badge kind">quote</span></td><td>"AI 기능을 붙이는 것은 AI Native가 아니다. PDLC 전체를 다시 설계하는 것이다."</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="act-block act1">
+<h3><span class="badge act">ACT 1</span> 왜 지금 — 패러다임 · 4장</h3>
+<table>
+  <thead><tr><th>#</th><th>kind</th><th>메시지 / 데이터</th></tr></thead>
+  <tbody>
+    <tr><td>3</td><td><span class="badge kind">paradigm-shift</span></td><td>Software 1.0 → 2.0 → 3.0 (Karpathy) + Claude 모델 진화 타임라인 (Sonnet 4.6@2026.02, Opus 4.7@2026.04)</td></tr>
+    <tr><td>4</td><td><span class="badge kind">claude-stat-grid</span></td><td><span class="badge src">Anthropic 내부</span> 일일 업무 28%→59% · +50% 생산성 · PR merge +67% · 14% 파워유저 +100% · 연속 tool call 9.8→21.2 · 인간 turn 6.2→4.1</td></tr>
+    <tr><td>5</td><td><span class="badge kind">claude-shift</span></td><td><span class="badge src">Anthropic 6개월 추적</span> 기능 구현 14%→37% · 코드 설계/계획 1%→10% · 27% "Claude 없으면 안 했을 일"</td></tr>
+    <tr><td>6</td><td><span class="badge kind">definition</span></td><td>AI Native 4가지 조건: ①AI가 일할 구조 ②평가/관찰성 ③피드백 루프 ④인간은 검증·책임</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="act-block act2">
+<h3><span class="badge act">ACT 2</span> 무엇이 달라지는가 — 페르소나 · 5장</h3>
+<table>
+  <thead><tr><th>#</th><th>kind</th><th>메시지 / 데이터</th></tr></thead>
+  <tbody>
+    <tr><td>7</td><td><span class="badge kind">personas-grid</span></td><td>5개 페르소나 카드(기획자/개발자/디자이너/조직장/경영진)</td></tr>
+    <tr><td>8</td><td><span class="badge kind">persona-deep</span></td><td><b>개발자 FE</b> — 디버깅 55% / 코드 이해 42% / 구현 37%. 역할: 코드 작성자 → AI 시스템 오케스트레이터</td></tr>
+    <tr><td>9</td><td><span class="badge kind">persona-deep</span></td><td><b>기획자</b> — 기능 명세자 → AI 행동 설계자. KPI: 과업 성공률·재시도율·신뢰도·전환율</td></tr>
+    <tr><td>10</td><td><span class="badge kind">persona-deep</span></td><td><b>디자이너</b> — 화면 설계자 → Human-AI Interaction 설계자</td></tr>
+    <tr><td>11</td><td><span class="badge kind">metric-table</span></td><td><span class="badge src">Economic Index 2026.03</span> 고숙련자 성공률 +10%p · 개발자 Opus 사용률 34% — "학습 곡선이 KPI"</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="act-block act3">
+<h3><span class="badge act">ACT 3</span> 5단계 사이클 — 본체 · 7장</h3>
+<p class="note">컨텍스트 → 실행 → 검증 → 반영 → 학습</p>
+<table>
+  <thead><tr><th>#</th><th>kind</th><th>메시지 / 데이터</th></tr></thead>
+  <tbody>
+    <tr><td>12</td><td><span class="badge kind">cycle-overview</span></td><td>5단계 다이어그램 (루프 시각화)</td></tr>
+    <tr><td>13</td><td><span class="badge kind">cycle-step</span></td><td><b>컨텍스트</b> — MCP(2024.11) + Spec Kit + Superpowers spec/plan. 사내: <code>docs/superpowers/specs/</code> · <code>plans/</code></td></tr>
+    <tr><td>14</td><td><span class="badge kind">cycle-step</span></td><td><b>실행</b> — <span class="badge src">Anthropic Building Effective Agents</span> 5패턴: Prompt Chaining / Routing / Parallelization / Orchestrator-Workers / Evaluator-Optimizer</td></tr>
+    <tr><td>15</td><td><span class="badge kind">cycle-step</span></td><td><b>검증</b> — Eval-Driven Development. <span class="badge src">Anthropic Demystifying Evals 2026.01</span> 코드+모델+휴먼 3-grader · pass@k vs pass^k · 20~50 task로 시작</td></tr>
+    <tr><td>16</td><td><span class="badge kind">cycle-step</span></td><td><b>반영</b> — 전수 리뷰 불가능. Evaluator-Optimizer 자동 게이트 + 위험 가중 리뷰</td></tr>
+    <tr><td>17</td><td><span class="badge kind">cycle-step</span></td><td><b>학습</b> — <span class="badge src">Anthropic AI Coding Skills</span> AI 그룹 -17%p(50% vs 67%, p=0.01), 디버깅 능력 가장 큰 감소 → 학습 모드 + failure mode 라이브러리</td></tr>
+    <tr><td>18</td><td><span class="badge kind">risk</span></td><td><span class="badge critical">리스크</span> Productivity Panic(Bloomberg 2026.02) · 멘토십·온보딩 감소 · OWASP LLM Top 10 · EU AI Act · NIST AI RMF</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="act-block act4">
+<h3><span class="badge act">ACT 4</span> 본인 사례 — 핵심 차별점 · 4장</h3>
+<table>
+  <thead><tr><th>#</th><th>kind</th><th>메시지 / 데이터</th></tr></thead>
+  <tbody>
+    <tr><td>19</td><td><span class="badge kind">case-intro</span></td><td>"실증: Claude Code + Superpowers 기반 사내 워크플로"</td></tr>
+    <tr><td>20</td><td><span class="badge kind">case-flow</span></td><td>spec → plan → impl → review (brainstorming · writing-plans · subagent-driven-development · spec-document-reviewer). 실제 <code>docs/superpowers/</code> 디렉터리를 자산으로 운영</td></tr>
+    <tr><td>21</td><td><span class="badge kind">case-multiagent</span></td><td>PM · 디자이너 · 개발 3인조 (주작업/리뷰어/감독자). <code>/multi-agent</code> 발표와 연결</td></tr>
+    <tr><td>22</td><td><span class="badge kind">case-lessons</span></td><td>교훈 3: ①spec 라이브러리=자산 ②리뷰어 페르소나 강제 ③피드백 루프=메모리 시스템</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="act-block act5">
+<h3><span class="badge act">ACT 5</span> 시작 가이드 + 마무리 · 3장</h3>
+<table>
+  <thead><tr><th>#</th><th>kind</th><th>메시지 / 데이터</th></tr></thead>
+  <tbody>
+    <tr><td>23</td><td><span class="badge kind">roadmap</span></td><td>이번 주(spec 라이브러리 시작) / 이번 분기(Eval 베이스라인 + 모델 라우팅 Sonnet 4.6 기본 + Opus 4.7) / 6개월(failure mode 자산화 + AI 가이드라인)</td></tr>
+    <tr><td>24</td><td><span class="badge kind">references</span></td><td>Anthropic 1차 자료 + Karpathy + Hamel Husain + OWASP + EU AI Act + NIST AI RMF</td></tr>
+    <tr><td>25</td><td><span class="badge kind">closing</span></td><td>"AI Native는 도구의 교체가 아니라 운영체계의 교체다." — Q&amp;A</td></tr>
+  </tbody>
+</table>
+</div>
+</section>
+
+<section class="section" id="s5">
+<h2><span class="num">5.</span>데이터 모델</h2>
+<h3>5.1 슬라이드 데이터 (<code>src/AiNativePresentation.jsx</code>)</h3>
+<pre><code>const slides = [
+  { kind: "title", eyebrow, title, subtitle, tagline, desc },
+  { kind: "quote", eyebrow, quote, attribution? },
+  { kind: "paradigm-shift", stages: [...], timeline: [...] },
+  { kind: "claude-stat-grid", source, stats: [{value, label, delta?}] },
+  { kind: "claude-shift", source, rows: [{label, from, to}] },
+  { kind: "definition", items: [{n, title, body}] },
+  { kind: "personas-grid", personas: [{role, concern, shift, kpis}] },
+  { kind: "persona-deep", role, shift, kpis, data?: [{label, value, source}] },
+  { kind: "metric-table", source, rows: [[before, after, note]] },
+  { kind: "cycle-overview", steps: [{n, label, oneLiner}] },
+  { kind: "cycle-step", n, label, points, source?, sideNote? },
+  { kind: "risk", items: [{title, body, source}] },
+  { kind: "case-intro", title, body },
+  { kind: "case-flow", nodes: [{label, tool, dir?}] },
+  { kind: "case-multiagent", personas: [...], link },
+  { kind: "case-lessons", lessons: [{title, body}] },
+  { kind: "roadmap", phases: [{when, items}] },
+  { kind: "references", groups: [{label, items: [{title, url}]}] },
+  { kind: "closing", cta },
+];</code></pre>
+<h3>5.2 디자인 토큰 (Presentation.jsx 호환)</h3>
+<p>indigo / pink / emerald / amber / violet / sky 팔레트와 light 변형. <code>Presentation.jsx</code>의 <code>palette</code> 객체와 동일 키 사용.</p>
+</section>
+
+<section class="section" id="s6">
+<h2><span class="num">6.</span>컴포넌트 구조</h2>
+<pre><code>src/
+├── AiNativePresentation.jsx   # 신규 — 라우트 메인
+│   ├── slides[]               # 데이터 배열
+│   ├── useKeyboardNav()       # ← → Space PageDown
+│   ├── SlideShell             # 공통 레이아웃
+│   └── kind별 렌더러
+├── App.jsx                    # 수정 — /ai-native 라우트 + 홈 카드
+├── main.jsx                   # 수정 — Router 등록
+└── downloadUtils.js           # 수정 — presentationDownloads.aiNative</code></pre>
+<h3>6.1 책임 경계</h3>
+<div class="grid2">
+  <div>
+    <h4>AiNativePresentation.jsx</h4>
+    <ul>
+      <li>슬라이드 데이터 + kind별 렌더러</li>
+      <li>키보드/터치 네비</li>
+      <li>인쇄 모드 분기 (<code>runExportMode</code>)</li>
+    </ul>
+  </div>
+  <div>
+    <h4>App.jsx · downloadUtils.js</h4>
+    <ul>
+      <li>홈 메뉴 카드 1개 추가</li>
+      <li><code>presentationDownloads.aiNative</code> 엔트리</li>
+      <li><code>data-export-hidden</code>으로 export 시 버튼 숨김</li>
+    </ul>
+  </div>
+</div>
+</section>
+
+<section class="section" id="s7">
+<h2><span class="num">7.</span>인용·출처 정책</h2>
+<p>모든 정량 데이터는 슬라이드 하단/카드 내 <code>source</code> 필드에 출처 표기 <span class="badge info">필수</span></p>
+<h3>7.1 1차 자료 (Anthropic)</h3>
+<table>
+  <thead><tr><th>자료</th><th>출처</th></tr></thead>
+  <tbody>
+    <tr><td>일일 업무 59% / +50% 생산성 / PR merge +67%</td><td>How AI Is Transforming Work at Anthropic</td></tr>
+    <tr><td>기능 구현 14%→37% / 연속 tool call 9.8→21.2</td><td>위 자료</td></tr>
+    <tr><td>고숙련자 성공률 +10%p / 개발자 Opus 사용률 34%</td><td>Economic Index 2026.03 Learning Curves</td></tr>
+    <tr><td>5가지 에이전트 워크플로 패턴</td><td>Building Effective Agents 2024.12</td></tr>
+    <tr><td>3-grader / pass@k vs pass^k / 20~50 task</td><td>Demystifying Evals for AI Agents 2026.01</td></tr>
+    <tr><td>AI 그룹 -17%p / 디버깅 능력 감소</td><td>How AI Assistance Impacts the Formation of Coding Skills</td></tr>
+    <tr><td>Sonnet 4.6 / Opus 4.7 모델 전략</td><td>Anthropic 공식 모델 페이지</td></tr>
+  </tbody>
+</table>
+<h3>7.2 보조 자료</h3>
+<ul>
+  <li>Karpathy "Software 2.0/3.0" — 패러다임 정의</li>
+  <li>Bloomberg "Productivity Panic of 2026" — 리스크 슬라이드</li>
+  <li>OWASP LLM Top 10 v2 (2025) — 보안</li>
+  <li>EU AI Act / NIST AI RMF — 거버넌스</li>
+  <li>Hamel Husain "Your AI Product Needs Evals" — EDD 개념</li>
+</ul>
+</section>
+
+<section class="section" id="s8">
+<h2><span class="num">8.</span>다운로드 동작</h2>
+<ul>
+  <li><b>PDF 저장</b>: <code>openPdfPrintView(presentationDownloads.aiNative.pdf)</code> — print-friendly 새 창</li>
+  <li><b>HTML 다운로드</b>: <code>downloadStaticHtml(presentationDownloads.aiNative.html, filename)</code> — 단일 정적 HTML</li>
+</ul>
+</section>
+
+<section class="section" id="s9">
+<h2><span class="num">9.</span>검증 기준 (수용 조건)</h2>
+<table>
+  <thead><tr><th>항목</th><th>기준</th></tr></thead>
+  <tbody>
+    <tr><td>라우팅</td><td><code>/ai-native</code> 접근 시 슬라이드 1번이 첫 화면</td></tr>
+    <tr><td>네비게이션</td><td>키보드(← → Space PageDown PageUp) + 클릭 모두 동작</td></tr>
+    <tr><td>슬라이드 수</td><td>25장 (Act 0~5)</td></tr>
+    <tr><td>출처 표기</td><td>정량 데이터 슬라이드 하단에 <code>source</code> 노출 필수</td></tr>
+    <tr><td>홈 노출</td><td><code>/</code> 메뉴 카드에 신규 카드 1개 추가</td></tr>
+    <tr><td>다운로드</td><td>PDF 저장 · HTML 다운로드 버튼 동작</td></tr>
+    <tr><td>디자인 일관성</td><td>Presentation.jsx의 palette·폰트·그림자·곡률 동일</td></tr>
+    <tr><td>인쇄</td><td>export 모드에서 모든 슬라이드 펼쳐짐, <code>data-export-hidden</code> 숨김</td></tr>
+    <tr><td>한국어 검수</td><td>오탈자, 문장 일관성(존댓말 발표 톤)</td></tr>
+    <tr><td>빌드</td><td><code>npm run build</code> 무경고 통과</td></tr>
+  </tbody>
+</table>
+</section>
+
+<section class="section" id="s10">
+<h2><span class="num">10.</span>리스크와 완화</h2>
+<table>
+  <thead><tr><th>리스크</th><th>등급</th><th>완화</th></tr></thead>
+  <tbody>
+    <tr><td>Anthropic 데이터 출처 누락</td><td><span class="badge critical">Critical</span></td><td>정량 슬라이드 모두 <code>source</code> 필수화 (검증 기준)</td></tr>
+    <tr><td>슬라이드 분량 초과 (30+)</td><td><span class="badge warning">Warning</span></td><td>Act별 슬라이드 수 고정, 추가는 발표자 노트</td></tr>
+    <tr><td>본인 사례 노출 과다(자랑처럼)</td><td><span class="badge warning">Warning</span></td><td>Act 4(4장)로 한정, "운영 교훈"으로 일반화</td></tr>
+    <tr><td>모델 버전 노후화</td><td><span class="badge info">Info</span></td><td>모델명을 상수로 분리해 1포인트 수정 가능</td></tr>
+    <tr><td>인용 데이터 해석 편향</td><td><span class="badge warning">Warning</span></td><td>references 슬라이드에 URL 모두 노출, 도발 다음 실증 슬라이드 배치</td></tr>
+  </tbody>
+</table>
+</section>
+
+<section class="section" id="s11">
+<h2><span class="num">11.</span>비결정 사항</h2>
+<ul>
+  <li>발표자 노트(speaker notes) 분리 표시 여부 — 일단 본문 포함, 화면 미노출</li>
+  <li>영문 버전 — out of scope</li>
+  <li>인터랙티브 demo — out of scope</li>
+</ul>
+</section>
+
+<section class="section" id="s12">
+<h2><span class="num">12.</span>다음 단계</h2>
+<ol>
+  <li>본 spec → <b>spec-document-reviewer 리뷰 루프</b> → 사용자 최종 검토</li>
+  <li>승인 후 <b><code>writing-plans</code> 스킬</b>로 구현 계획 작성 (<code>docs/superpowers/plans/2026-05-19-ai-native-presentation-plan.md</code>)</li>
+  <li><b><code>subagent-driven-development</code></b>로 구현</li>
+</ol>
+</section>
+
+<p class="note" style="text-align:center; margin-top:32px;">
+  원본 마크다운: <code>docs/superpowers/specs/2026-05-19-ai-native-presentation-design.md</code>
+</p>
+
+</div>
+</body>
+</html>
