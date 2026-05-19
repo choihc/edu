@@ -399,22 +399,32 @@ export const slides = [
 ];
 
 // 출처 표기 dev-only 검증 — spec §7.4 룰
-// 정량 슬라이드(stats-grid / compare-rows / 정량 list-rows variant)는 source 필수.
+// 정량 슬라이드(stats-grid / compare-rows / persona-quant list-rows)는 슬라이드 단위 source 필수.
+// counterevidence·cycle-step variant는 행마다 다른 출처가 들어가므로 row-level source로 갈음.
 if (import.meta.env && import.meta.env.DEV) {
-  const REQUIRE_SOURCE_KINDS = new Set(["stats-grid", "compare-rows"]);
-  const REQUIRE_SOURCE_LIST_VARIANTS = new Set([
-    "counterevidence",
-    "cycle-step",
-    "persona-quant",
-    "eval-metric",
-  ]);
+  const REQUIRE_SLIDE_SOURCE_KINDS = new Set(["stats-grid", "compare-rows"]);
+  const REQUIRE_SLIDE_SOURCE_LIST_VARIANTS = new Set(["persona-quant"]);
+  const ROW_SOURCE_VARIANTS = new Set(["counterevidence"]);
+
   const missing = [];
   slides.forEach((s, i) => {
-    const needs =
-      REQUIRE_SOURCE_KINDS.has(s.kind) ||
-      (s.kind === "list-rows" && REQUIRE_SOURCE_LIST_VARIANTS.has(s.variant));
-    if (needs && !s.source) {
-      missing.push(`#${i + 1} ${s.kind}${s.variant ? "/" + s.variant : ""}`);
+    const id = `#${i + 1} ${s.kind}${s.variant ? "/" + s.variant : ""}`;
+    if (REQUIRE_SLIDE_SOURCE_KINDS.has(s.kind) && !s.source) {
+      missing.push(id);
+      return;
+    }
+    if (s.kind === "list-rows" && REQUIRE_SLIDE_SOURCE_LIST_VARIANTS.has(s.variant) && !s.source) {
+      missing.push(id);
+      return;
+    }
+    if (s.kind === "list-rows" && ROW_SOURCE_VARIANTS.has(s.variant)) {
+      // counterevidence: 최소 1개 row 또는 slide-level source 존재해야 함
+      // (메타 비평 row는 출처 없을 수 있으므로 some 으로 완화)
+      const rows = s.rows ?? [];
+      const anyRowHasSource = rows.some((r) => r.source);
+      if (!anyRowHasSource && !s.source) {
+        missing.push(`${id} (row-level source 0개)`);
+      }
     }
   });
   if (missing.length > 0) {
