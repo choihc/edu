@@ -464,7 +464,7 @@ function SlideShell({ idx, total, slide, children, onPrev, onNext }) {
         </div>
       </header>
 
-      <main style={{ flex: 1, position: "relative" }}>
+      <main style={{ flex: 1, position: "relative", display: "flex", flexDirection: "column", minHeight: 0 }}>
         {children}
       </main>
 
