@@ -1,23 +1,37 @@
 ---
 title: AI Native 발표 슬라이드 — 디자인 스펙
 date: 2026-05-19
-status: draft (rev 2)
+status: draft (rev 3)
 owner: Hyeoncheol Choi
 audience: 사내 개발팀 (FE/BE 시니어 포함)
-duration: 20~30분
+duration: 25분 (±5분)
 deliverable: React 라우트 `/ai-native` (단일 SPA 슬라이드 모드) + PDF/HTML 다운로드
-revision: rev 1 (2026-05-19 초안) → rev 2 (리뷰 반영 — 슬라이드 26장, palette·kind 통합 결정, 자료 검증 부록 추가)
+revision: rev 1 (초안) → rev 2 (1차 리뷰 반영) → rev 3 (2차 리뷰 반영 — kind 8개로 통일, ACT 페이싱 표, 상수 단일 출처, sources 부록 위치 확정, §10 등급 동결)
 ---
 
 # AI Native 발표 슬라이드 — 디자인 스펙
 
 ## 1. Executive Summary
 
-사내 개발팀 대상 20~30분 분량의 발표 슬라이드를 React 라우트 `/ai-native` 로 구현한다. 핵심 메시지는 **"AI Native는 도구의 교체가 아니라 운영체계의 교체다"** 라는 도발적 주장이며, 이를 **Anthropic 1차 자료(2025–2026 최신)** 로 실증하고, 본인 팀이 운영 중인 **Superpowers spec/plan 워크플로 + 멀티에이전트 페르소나** 로 사내 사례 차별화를 만든다.
+사내 개발팀 대상 **약 25분 분량(±5분, 26장)** 의 발표 슬라이드를 React 라우트 `/ai-native` 로 구현한다. 핵심 메시지는 **"AI Native는 도구의 교체가 아니라 운영체계의 교체다"** 라는 도발적 주장이며, 이를 **Anthropic 1차 자료(2025–2026 최신)** 로 실증하고, 본인 팀이 운영 중인 **Superpowers spec/plan 워크플로 + 멀티에이전트 페르소나** 로 사내 사례 차별화를 만든다.
 
-도발 메시지에 대한 반증 데이터(AI 그룹 학습 격차 -17%p 등)는 ACT 1 마지막에 "반증 직시" 슬라이드로 정면 노출하여 체리피킹 비판을 차단한다.
+도발 메시지에 대한 반증 데이터(AI 그룹 학습 격차 -17%p 등)는 ACT 1 마지막에 "반증 직시" 슬라이드(슬라이드 7)로 정면 노출하여 체리피킹 비판을 차단한다.
 
-기존 `Presentation.jsx`(스펙매니저 발표)의 슬라이드 패턴과 **인디고/슬레이트 palette**, kind별 렌더러, 키보드 네비게이션, PDF/HTML export 기능을 그대로 계승한다.
+데이터 모델은 **8개 공통 kind + variant** 로 통합(`hero` · `quote` · `stats-grid` · `list-rows` · `cards-grid` · `compare-rows` · `references` · `closing`). 모델 버전·핵심 메트릭은 `aiNativeSlides.js` 상단 상수로 분리하여 1포인트 수정을 보장한다.
+
+기존 `Presentation.jsx`(스펙매니저 발표)의 슬라이드 패턴과 **인디고/슬레이트 palette**, 키보드 네비게이션, PDF/HTML export 기능을 그대로 계승한다.
+
+### 1.1 핵심 상수 (단일 출처)
+
+스펙·슬라이드·검증 기준 모두 아래 표를 참조한다. 변경 시 이 표만 수정한다.
+
+| 키 | 값 | 사용처 |
+|---|---|---|
+| `TOTAL_SLIDES` | 26 | §3, §4, §9 |
+| `TARGET_MINUTES` | 25 (±5) | §3, §9 (리허설) |
+| `SONNET` | `4.6` (출시 2026.02) | 슬라이드 3, 24 |
+| `OPUS` | `4.7` (출시 2026.04) | 슬라이드 3, 24 |
+| `KIND_COUNT` | 8 (공통 kind) | §5.1, §6.1, §6.2, §9 |
 
 ---
 
@@ -54,7 +68,21 @@ revision: rev 1 (2026-05-19 초안) → rev 2 (리뷰 반영 — 슬라이드 26
 
 ## 4. 슬라이드 구성 (5막 26장)
 
-총 26장. 평균 60초 안팎으로 페이싱한다. 반증 직시 슬라이드(슬라이드 7)를 신설하여 ACT 1을 5장으로 확장.
+총 26장 / 평균 25분(±5분). 슬라이드당 평균 약 58초.
+
+### 4.0 ACT별 페이싱 (재계산)
+
+평균이 아닌 ACT별로 분배한다. 정보 밀도가 높은 ACT 1·3·4에 더 많은 시간을 할당.
+
+| ACT | 슬라이드 수 | 목표 시간 | 슬라이드 평균 | 비고 |
+|---|---|---|---|---|
+| 0 | 2 | 1분 | 30초 | 도입 짧게 |
+| 1 | 5 | 5.5분 | 66초 | 슬라이드 4·7은 80초씩, 5·6은 50초 |
+| 2 | 5 | 4.5분 | 54초 | 9번 정량 슬라이드만 70초 |
+| 3 | 7 | 8분 | 69초 | 15·16·17 70~80초, 나머지 60초 |
+| 4 | 4 | 4.5분 | 67초 | 사례 흐름 강조 |
+| 5 | 3 | 1.5분 | 30초 | closing 30초 + Q&A 본격 |
+| **합계** | **26** | **25분** | — | §9 리허설 기준과 일치 |
 
 ### ACT 0. Hook (2장)
 
@@ -110,7 +138,7 @@ revision: rev 1 (2026-05-19 초안) → rev 2 (리뷰 반영 — 슬라이드 26
 
 | # | kind/variant | 메시지 / 데이터 |
 |---|---|---|
-| 24 | `list-rows` (variant: `roadmap-org`) | **조직 액션 중심 로드맵**: ① 누가 = spec owner 지정(이번 주) ② 언제 = Eval 첫 베이스라인(이번 분기) ③ 측정 = pass^k 95% + failure mode N건 누적(6개월) ※ 도구·기술 수단은 본문에서 이미 다룸 |
+| 24 | `list-rows` (variant: `roadmap-org`) | **조직 액션 중심 로드맵**: ① 누가 = spec owner 지정(이번 주) ② 언제 = Eval 첫 베이스라인(이번 분기) ③ 측정 = pass^k 95% + failure mode 누적 건수(**초기 베이스라인 측정 후 plan 단계에서 N 확정**, 슬라이드에는 "베이스라인 측정 후 결정" 노출) ※ 도구·기술 수단은 본문에서 이미 다룸: 컨텍스트(13) / 실행(15) / 검증(16·17) / 반영(18) / 학습(19) |
 | 25 | `references` | Anthropic 1차 자료 + Karpathy + Hamel Husain + OWASP + EU AI Act + NIST AI RMF (URL 모두 명시) |
 | 26 | `closing` | "AI Native는 도구의 교체가 아니라 운영체계의 교체다." — Q&A 시작 질문 3개 포함 |
 
@@ -118,9 +146,9 @@ revision: rev 1 (2026-05-19 초안) → rev 2 (리뷰 반영 — 슬라이드 26
 
 ## 5. 데이터 모델
 
-### 5.1 통합 슬라이드 스키마 (7개 공통 kind)
+### 5.1 통합 슬라이드 스키마 (8개 공통 kind)
 
-19개 1회용 kind에서 **7개 공통 kind + variant**로 통합하여 재사용성을 확보한다.
+19개 1회용 kind에서 **8개 공통 kind + variant**로 통합하여 재사용성을 확보한다. `closing`은 마지막 슬라이드(Q&A 시작 질문) 전용 단일 인스턴스로 `hero`·`quote`와는 다른 레이아웃이므로 독립 kind로 유지한다.
 
 ```js
 // 공통 베이스 필드
@@ -141,7 +169,7 @@ type SourceRef = {
   disclaimer?: string;        // 일반화 한계 등 디스클레이머
 };
 
-// 7개 kind
+// 8개 공통 kind
 const slides: Slide[] = [
   // 1. hero — 타이틀/도입/사례 시작
   { kind: "hero", variant: "title"|"case-intro", eyebrow, title, subtitle?, tagline?, desc? },
@@ -171,7 +199,7 @@ const slides: Slide[] = [
 ];
 ```
 
-> 결과적으로 **공통 kind 8개**(hero, quote, stats-grid, list-rows, cards-grid, compare-rows, references, closing). 19개 1회용 컴포넌트보다 7개 정도 줄어 재사용성과 유지비용이 크게 개선된다.
+> 결과적으로 **공통 kind 8개**(hero, quote, stats-grid, list-rows, cards-grid, compare-rows, references, closing). 19개 1회용 컴포넌트 대비 11개 감소로 재사용성과 유지비용이 크게 개선된다. (`KIND_COUNT = 8`, §1.1 핵심 상수)
 
 ### 5.2 디자인 토큰 — Presentation.jsx (스펙매니저) 톤 계승
 
@@ -245,7 +273,7 @@ src/
 
 ### 7.3 [신설] 자료 실재성 검증 체크리스트
 
-구현 착수 **전** 모든 1차/보조 자료에 대해 아래 4필드를 확보하고 `aiNativeSlides.js` 상단 주석 또는 별도 `sources.md` 부록에 기록한다. **하나라도 미검증 시 해당 슬라이드는 정량 표시 대신 정성 메시지로 대체**한다.
+구현 착수 **전** 모든 1차/보조 자료에 대해 아래 4필드를 확보하고 **`docs/superpowers/specs/2026-05-19-ai-native-sources.md` 단일 파일**에 기록한다(자동 검증 가능 형태). **하나라도 미검증 시 해당 슬라이드는 정량 표시 대신 정성 메시지로 대체**한다.
 
 | 필드 | 형식 | 예시 |
 |---|---|---|
@@ -291,25 +319,29 @@ src/
 | 디자인 일관성 | palette 키 100% 일치 (Presentation.jsx의 palette 객체와 키 diff = 0) |
 | 인쇄 | export 모드에서 26장 모두 펼쳐짐, `data-export-hidden` 요소 미노출 (인쇄 미리보기 확인) |
 | 한국어 검수 | 검수자 2인 sign-off (작성자 + 1인 peer) |
+| **사전 동료 청취** | Act 4(본인 사례) 부분만 동료 1인에게 사전 청취 — "본인 팀 자랑"으로 들리는지 confirm/adjust 라운드 1회 |
 | 빌드 | `npm run build` 0 warning 0 error |
-| 리허설 시간 | 1회 리허설에서 25분 이내 완주 (±5분 허용) |
+| 리허설 시간 | 1회 리허설에서 `TARGET_MINUTES` 25분 ±5분 내 완주 |
 
 ---
 
 ## 10. 리스크와 완화
 
-| 리스크 | 등급 | 완화 |
-|---|---|---|
-| 1차 자료 실재성 미검증 → 발표 전체 신뢰 붕괴 | Critical | §7.3 체크리스트 100% 완비. 미검증 자료는 정성 메시지로 대체 |
-| 슬라이드 분량 초과 (26 → 30+) | Warning | Act별 슬라이드 수 고정. 추가 메시지는 `speakerNote`에만 |
-| **사내 정치 — "본인 팀 자랑 발표" 인식** | Warning | **(추가)** Act 4 마지막(슬라이드 23)을 "교훈의 일반화" 톤으로. 슬라이드 22는 라이브 링크로 기존 자료 공유 → "자산 공유" 메시지 강조 |
-| **Anthropic 데이터 일반화 한계** | Warning | **(추가)** 슬라이드 4 하단에 "Anthropic 자체 데이터(LLM 회사 직원·자기 도구 측정)의 일반화 한계" 1줄 디스클레이머 + 슬라이드 7(반증 직시) 정면 노출 |
-| 본인 사례 노출 과다 | Warning | Act 4(4장) 한정. "운영 교훈" 슬라이드(23)로 결론 일반화 |
-| 모델 버전 노후화 (Opus 4.7 이후 새 모델 등장) | Info | `aiNativeSlides.js` 상단 `MODELS` 상수로 분리하여 1포인트 수정 |
-| 반증 데이터(슬라이드 7) 처리 톤 | Warning | "그런데" → "그래서 운영체계 재설계가 필요하다" 연결을 슬라이드 7 마지막 줄로 명시. 단순 폭로가 아닌 본문 흐름 연결 |
-| ACT 3 페이싱 (15·16·17 분할 후에도 정보 과밀 가능) | Warning | 슬라이드 15는 **다이어그램 위주**, 발표자가 3개만 deep-dive. Eval은 2장(16·17)으로 분할 완료 |
-| Palette 호환 (Presentation.jsx와 키 diff) | Critical → Info | §5.2 와 §9 검증 기준에 "키 diff = 0" 명시 |
-| 인용 데이터 해석 편향 | Warning | references 슬라이드에 URL 모두 노출 + 슬라이드 7로 반증 균형 |
+등급은 평가 시점 그대로 동결한다. 완화로 인해 잔여 리스크가 낮아진 경우 "잔여" 컬럼에 별도 표기.
+
+| 리스크 | 평가 등급 | 완화 | 잔여 |
+|---|---|---|---|
+| 1차 자료 실재성 미검증 → 발표 전체 신뢰 붕괴 | Critical | §7.3 체크리스트 100% 완비. 미검증 자료는 정성 메시지로 대체 | Low (검증 후) |
+| 슬라이드 분량 초과 (26 → 30+) | Warning | Act별 슬라이드 수 고정. 추가 메시지는 `speakerNote`에만 | Low |
+| **사내 정치 — "본인 팀 자랑 발표" 인식** | Warning | Act 4 마지막(슬라이드 23)을 "교훈의 일반화" 톤으로. 슬라이드 22는 라이브 링크로 기존 자료 공유 → "자산 공유" 메시지 강조. **사전 동료 1인 청취 1회 필수**(§9 추가) | Medium |
+| **Anthropic 데이터 일반화 한계** | Warning | 슬라이드 4 하단에 "Anthropic 자체 데이터(LLM 회사 직원·자기 도구 측정)의 일반화 한계" 1줄 디스클레이머 + 슬라이드 7(반증 직시) 정면 노출 | Low |
+| 본인 사례 노출 과다 | Warning | Act 4(4장) 한정. "운영 교훈" 슬라이드(23)로 결론 일반화 | Low |
+| 모델 버전 노후화 (Opus 4.7 이후 새 모델 등장) | Info | §1.1 상수 표 단일 출처 + `aiNativeSlides.js` 상단 `MODELS` 상수 분리 | Low |
+| 반증 데이터(슬라이드 7) 처리 톤 | Warning | "그런데" → "그래서 운영체계 재설계가 필요하다" 연결을 슬라이드 7 마지막 줄로 명시. 단순 폭로가 아닌 본문 흐름 연결 | Low |
+| ACT 3 페이싱 (15·16·17 분할 후에도 정보 과밀 가능) | Warning | 슬라이드 15는 **다이어그램 위주**, 발표자가 3개만 deep-dive. Eval은 2장(16·17)으로 분할 완료 + §4.0 ACT별 페이싱 표 | Low |
+| **ACT 1 페이싱 (5장 5.5분)** | Warning | §4.0 ACT 1 행에서 슬라이드 4·7은 80초씩 길게, 5·6은 50초씩 짧게 — 평균 66초 유지 | Low |
+| Palette 호환 (Presentation.jsx와 키 diff) | Critical | §5.2 복제 + §9 검증 기준 "키 diff = 0" 초기 1회 검증. **drift 위험**: 두 발표가 동시에 palette 수정 시 어긋날 수 있음 → 후속 작업으로 `presentationPalette.js` 공유 모듈 추출(§11) | Medium |
+| 인용 데이터 해석 편향 | Warning | references 슬라이드에 URL 모두 노출 + 슬라이드 7로 반증 균형 | Low |
 
 ---
 
@@ -329,11 +361,12 @@ src/
 
 ## 12. 다음 단계
 
-1. 본 spec rev 2 → spec-document-reviewer 재리뷰 (이슈 100% 해소 확인)
-2. 사용자 최종 검토 게이트
-3. 승인 후 **`writing-plans` 스킬**로 구현 계획 작성 (`docs/superpowers/plans/2026-05-19-ai-native-presentation-plan.md`)
-4. plan 문서 작성과 **동시 또는 직후**에 §7.3 자료 검증 체크리스트(sources 부록) 완비
-5. **`subagent-driven-development`** 로 구현 진행
+1. 본 spec rev 3 → 사용자 최종 검토 게이트
+2. 승인 후 **`writing-plans` 스킬**로 구현 계획 작성 (`docs/superpowers/plans/2026-05-19-ai-native-presentation-plan.md`)
+3. plan 작성과 **동시 또는 직후**에 §7.3 자료 검증 체크리스트(`docs/superpowers/specs/2026-05-19-ai-native-sources.md`) 완비
+4. **`subagent-driven-development`** 로 구현 진행
+5. 구현 중간/완료 시 §9 모든 항목 통과 확인 (한국어 검수 2인 sign-off + 사전 동료 청취 포함)
+6. 리허설 1회 후 §9 시간 기준(25분 ±5분) 통과 확인 → 통과 못 하면 슬라이드 추가 압축
 
 ---
 
@@ -353,4 +386,27 @@ src/
 | W6 다운로드 분기 명확화 | Warning | §6.2 와 §8 에 `filename` 분기 명시 |
 | W7 ACT 5 로드맵 중복 | Warning | 슬라이드 24를 "조직 액션(누가/언제/측정)" 중심으로 재배치 |
 | W8 슬라이드 21 라이브 링크 | Warning | 슬라이드 22에 라이브 링크 버튼 추가 |
-| Info | Info | §11 비결정 사항에 통합 |
+| I1 슬라이드 데이터 위치 | Info | `aiNativeSlides.js`로 분리 (§6) |
+| I2 URL 슬라이드 동기화 | Info | §11 후속 결정 |
+| I3 모바일 반응형 | Info | §11 데스크탑 우선 |
+| I4 발표자 노트 표시 모드 | Info | §11 — 데이터 필드는 보유, 화면 모드는 후속 |
+| I5 다크 모드 | Info | §11 후속 |
+| I6 references 슬라이드 클릭 동작 | Info | §11 — 데스크탑 발표 클릭 불필요, 인쇄에는 URL 텍스트 |
+
+## 부록 B. rev 2 → rev 3 변경 내역 (2차 리뷰 반영)
+
+| 이슈 | 등급 | 반영 |
+|---|---|---|
+| §5.1 kind 개수 모순 (7 vs 8) | New Critical | "8개 공통 kind"로 통일 + §1.1 상수 표 + closing 독립 사유 명시 |
+| ACT 1 페이싱 재계산 누락 | New Critical | §4.0 ACT별 페이싱 표 추가 — ACT 1 = 5장 5.5분 |
+| §1 Executive Summary 핵심 수치 누락 | New Warning | "25분 ±5, 26장" + §1.1 핵심 상수 표 추가 |
+| §7.3 부록 위치 모호 (OR 선택지) | New Warning | `2026-05-19-ai-native-sources.md` 단일 파일로 못박음 |
+| §10 등급 변경 표기 ("Critical → Info") | New Warning | 등급 동결 + "잔여" 컬럼 추가 + Palette를 Critical 그대로 유지 |
+| 부록 A Info 6건 뭉뚱그림 | New Warning | I1~I6으로 분리 |
+| 모델 버전 본문 하드코딩 | New Warning | §1.1 핵심 상수 표를 단일 출처로 — 본문은 참조 |
+| 슬라이드 24 N 미정 | New Warning | "베이스라인 측정 후 plan 단계 확정", 슬라이드 노출은 "베이스라인 측정 후 결정" |
+| §12 sign-off 단계 누락 | New Info | §12 5·6 단계로 sign-off 게이트 추가 |
+| 슬라이드 22 라이브 링크 export 동작 | New Info | (rev 4 작업 시 §8에 추가 예정) |
+| W5 청중 사전 검증 메커니즘 부재 | Still Open | §9 검증 기준에 "사전 동료 청취" 행 추가 |
+| W7 로드맵 본문 매핑 불명확 | Still Open | 슬라이드 24 행에 본문 슬라이드 번호 매핑 추가 (13/15/16·17/18/19) |
+| C4 palette 강등 사유 | Still Open | §10에서 등급을 Critical로 동결, 후속 추출 후속 작업으로 명시 |

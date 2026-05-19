@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>AI Native 발표 슬라이드 — 디자인 스펙 (rev 2)</title>
+<title>AI Native 발표 슬라이드 — 디자인 스펙 (rev 3)</title>
 <style>
   :root {
     --bg: #f7f7f8; --paper: #ffffff; --ink: #161616; --text: #242424; --muted: #6b6b73;
@@ -108,7 +108,7 @@
 <div class="wrap">
 
 <header class="hero">
-  <span class="rev">REV 2 · 리뷰 반영</span>
+  <span class="rev">REV 3 · 2차 리뷰 반영</span>
   <div class="eyebrow">Design Spec · 2026-05-19</div>
   <h1>AI Native 발표 슬라이드 — 디자인 스펙</h1>
   <div style="font-size:15px; opacity:0.94; max-width:640px;">
@@ -124,12 +124,44 @@
 </header>
 
 <section class="summary">
-  <h2>Executive Summary</h2>
+  <h2>Executive Summary · 약 25분(±5) · 26장</h2>
   <p>① <b>운영체계의 교체</b> 메시지를 5막 26장으로 누적 설득.</p>
-  <p>② 정량 데이터는 <b>Anthropic 1차 자료</b>로만 사용. <b>§7.3 자료 실재성 검증 부록</b>으로 4필드(URL/접근일/원문/위치) 검증.</p>
+  <p>② 정량 데이터는 <b>Anthropic 1차 자료</b>로만 사용. <b>§7.3 자료 검증 부록</b>(<code>2026-05-19-ai-native-sources.md</code>)에 4필드(URL/접근일/원문/위치) 기록.</p>
   <p>③ <b>슬라이드 7 신설</b> — 반증 데이터(-17%p 등)를 본문에서 정면 노출하고 "그래서 운영체계 재설계가 필요"로 연결.</p>
   <p>④ 본인 팀 <b>Superpowers + 멀티에이전트 워크플로</b>를 Act 4(4장)에서 사례로. 슬라이드 23에서 "교훈의 일반화"로 마무리.</p>
-  <p>⑤ 데이터 모델은 <b>7개 공통 kind + variant</b>로 통합하여 19개 1회용 컴포넌트 제거.</p>
+  <p>⑤ 데이터 모델은 <b>8개 공통 kind + variant</b>로 통합하여 19개 1회용 컴포넌트 제거.</p>
+</section>
+
+<section class="section" id="s1">
+<h2><span class="num">1.1</span>핵심 상수 (단일 출처)</h2>
+<p>스펙·슬라이드·검증 기준이 모두 이 표를 참조한다.</p>
+<table>
+  <thead><tr><th>키</th><th>값</th><th>사용처</th></tr></thead>
+  <tbody>
+    <tr><td><code>TOTAL_SLIDES</code></td><td>26</td><td>§3, §4, §9</td></tr>
+    <tr><td><code>TARGET_MINUTES</code></td><td>25 (±5)</td><td>§3, §9 리허설</td></tr>
+    <tr><td><code>SONNET</code></td><td><code>4.6</code> (2026.02)</td><td>슬라이드 3, 24</td></tr>
+    <tr><td><code>OPUS</code></td><td><code>4.7</code> (2026.04)</td><td>슬라이드 3, 24</td></tr>
+    <tr><td><code>KIND_COUNT</code></td><td>8 (공통 kind)</td><td>§5.1, §6.1, §6.2, §9</td></tr>
+  </tbody>
+</table>
+</section>
+
+<section class="section" id="s4-pacing">
+<h2><span class="num">4.0</span>ACT별 페이싱 (재계산)</h2>
+<p>평균이 아닌 ACT별로 분배. 정보 밀도가 높은 ACT 1·3·4에 더 많은 시간.</p>
+<table>
+  <thead><tr><th>ACT</th><th>슬라이드 수</th><th>목표 시간</th><th>슬라이드 평균</th><th>비고</th></tr></thead>
+  <tbody>
+    <tr><td>0</td><td>2</td><td>1분</td><td>30초</td><td>도입 짧게</td></tr>
+    <tr><td>1</td><td>5</td><td>5.5분</td><td>66초</td><td>슬라이드 4·7은 80초, 5·6은 50초</td></tr>
+    <tr><td>2</td><td>5</td><td>4.5분</td><td>54초</td><td>9번 정량만 70초</td></tr>
+    <tr><td>3</td><td>7</td><td>8분</td><td>69초</td><td>15·16·17 70~80초</td></tr>
+    <tr><td>4</td><td>4</td><td>4.5분</td><td>67초</td><td>사례 흐름 강조</td></tr>
+    <tr><td>5</td><td>3</td><td>1.5분</td><td>30초</td><td>closing 30초 + Q&amp;A 본격</td></tr>
+    <tr><td><b>합계</b></td><td><b>26</b></td><td><b>25분</b></td><td>—</td><td>§9 리허설 기준과 일치</td></tr>
+  </tbody>
+</table>
 </section>
 
 <nav class="toc">
@@ -238,8 +270,8 @@
 </section>
 
 <section class="section" id="s5">
-<h2><span class="num">5.</span>데이터 모델 (7개 통합 kind)</h2>
-<p>19개 1회용 kind → <b>hero · quote · stats-grid · list-rows · cards-grid · compare-rows · references · closing</b> 의 8개 공통 kind + variant.</p>
+<h2><span class="num">5.</span>데이터 모델 (8개 공통 kind)</h2>
+<p>19개 1회용 kind → <b>hero · quote · stats-grid · list-rows · cards-grid · compare-rows · references · closing</b> 의 <b>8개 공통 kind + variant</b>. <code>closing</code>은 마지막 슬라이드(Q&amp;A) 전용으로 <code>hero</code>/<code>quote</code>와 다른 레이아웃이라 독립 kind 유지. (<code>KIND_COUNT = 8</code>, §1.1)</p>
 
 <pre><code>type SourceRef = { label, url?, year?, disclaimer? };
 
