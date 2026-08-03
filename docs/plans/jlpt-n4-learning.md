@@ -453,6 +453,66 @@ export function useChoiceKeys({ onSelect, onSubmit, enabled });
 
 ---
 
+### 14단계 — 후리가나 사전과 문장 분해 (JN4-036, AC-13)
+
+**위험도**: 중간 (데이터 분량) · **산출물**: `src/lib/furigana.js`, `src/data/kanjiReadings.js`
+
+지시자가 "예문의 한자를 못 읽으면 외울 수 없다"고 지적해(2026-08-03) 뒤늦게 추가한 단계다.
+문장 1,184개에 손으로 후리가나를 적는 대신 단어→읽기 사전을 만들고 문장을 자동으로 나눈다.
+
+**인터페이스 계약 (생산)**
+```js
+// src/lib/furigana.js
+export function annotate(text, dictionary);          // -> Array<{ text, reading? }>
+export function displayedSentences();                // -> string[] (화면에 쓰이는 일본어 문장 전부)
+export function missingReadings(sentences, dict);    // -> string[] (읽기가 빠진 한자 덩어리)
+// src/data/kanjiReadings.js
+export const READINGS;                               // 표기 → 히라가나 읽기
+```
+
+사전 키는 보내는 가나까지 포함한 표기다. 한자 하나에 읽기 하나를 짝지을 수 없기 때문이다
+(行く는 いく, 行う는 おこなう). 기본형을 짧은 키로 두고 읽기가 갈리는 경우만 긴 키를 얹는다.
+
+**RED** — `src/lib/furigana.test.js`
+```js
+it("한자 덩어리에 읽기를 붙이고 가나는 그대로 둔다", ...)
+it("보내는 가나까지 붙은 긴 항목을 먼저 맞춘다", ...)   // 行く / 行う
+it("읽기가 붙지 않은 한자가 하나도 없다", ...)          // AC-13 — 사전을 채우는 길잡이
+it("어휘 103개를 사전으로 읽으면 어휘 데이터의 읽기와 일치한다", ...)  // 읽기의 정확성 검증
+```
+
+같은 표기가 문맥에 따라 다르게 읽혀 후리가나를 붙일 수 없는 문장은 데이터를 다듬는다.
+(月の光で→月あかりで, 大学に通っている→大学で勉強している, 数を計算する→計算をする)
+
+---
+
+### 15단계 — 후리가나 UI 연결 (JN4-032~JN4-035, AC-14, AC-15)
+
+**위험도**: 낮음 · **산출물**: `src/components/JapaneseText.jsx`, `src/components/FuriganaToggle.jsx`, `src/lib/settingsStore.js`
+
+**인터페이스 계약 (생산)**
+```jsx
+export default function JapaneseText({ text, furigana, excludeUnderlined });
+export default function FuriganaToggle({ enabled, onToggle });
+// src/lib/settingsStore.js
+export const FURIGANA_KEY;                  // "jlpt-n4-furigana" (진도와 다른 키)
+export function loadFurigana(storage);      // 기본값 false (JN4-033)
+export function saveFurigana(storage, enabled);
+```
+
+**RED** — `JapaneseText.test.jsx`, `settingsStore.test.js`, 두 화면 테스트에 각각 추가
+```js
+it("후리가나를 켜면 한자에만 읽기를 얹고 보내는 가나는 그대로 둔다", ...)
+it("밑줄 대상은 후리가나에서 제외한다", ...)                    // JN4-034, AC-14
+it("후리가나 설정을 저장하고 다시 열 때 복원한다", ...)          // JN4-035, AC-15
+it("한자 읽기 유형은 후리가나를 켜도 밑줄 대상의 읽기를 보여 주지 않는다", ...)
+```
+
+학습 화면의 제시 대상은 답하기 전에는 후리가나를 붙이지 않는다. 표기→읽기 회상에서
+정답이 그대로 보이기 때문이다. 예문·단어는 답한 뒤에 붙는다.
+
+---
+
 ### 13단계 — 통합 검증과 정리
 
 `npm test`, `npm run build`를 돌리고, 아래 수동 체크리스트를 수행한다. 스펙의 §6 수용 조건 12개를 하나씩 대조해 완료 보고에 결과를 적는다.
@@ -474,6 +534,9 @@ export function useChoiceKeys({ onSelect, onSubmit, enabled });
 | `src/pages/PracticePage.test.jsx` | 실전 연습 화면 | JN4-022, JN4-025, JN4-029, AC-8 |
 | `src/pages/HomePage.test.jsx` | 홈 진입점 | JN4-001, AC-1 |
 | `src/hooks/useChoiceKeys.test.jsx` | 키보드 조작 | JN4-U08, AC-9 |
+| `src/lib/furigana.test.js` | 문장 분해·사전 커버리지·읽기 정확성 | JN4-036, AC-13 |
+| `src/lib/settingsStore.test.js` | 후리가나 설정 저장 | JN4-033, JN4-035, AC-15 |
+| `src/components/JapaneseText.test.jsx` | 루비 표시·밑줄 대상 제외 | JN4-032~JN4-034, AC-14 |
 
 **수동 회귀 체크리스트**
 
@@ -485,6 +548,7 @@ export function useChoiceKeys({ onSelect, onSubmit, enabled });
 | M4 | 브라우저 개발자 도구로 저장값을 깨뜨려도 앱이 정상 시작한다 | JN4-015 |
 | M5 | 다섯 유형을 각각 한 회차씩 풀어 결과 화면이 정상 표시된다 | JN4-022 |
 | M6 | 어휘 103개와 창작 문항 309개를 지시자가 검수한다 | AC-11, AC-12 |
+| M7 | 후리가나를 켠 상태로 다섯 유형을 훑어 읽기가 어색한 곳이 없는지 지시자가 확인한다 | AC-11 |
 
 ## 5. 위험과 완화
 
@@ -500,7 +564,8 @@ export function useChoiceKeys({ onSelect, onSubmit, enabled });
 ## 6. 브랜치·PR 전략
 
 - 브랜치: `choihc/n4-1` (현 브랜치 유지, 새로 만들지 않음)
-- 커밋: 위 13단계를 각각 1커밋으로 두되 9단계는 배치별 5커밋으로 나눈다. 총 17커밋 예상.
+- 커밋: 각 단계를 1커밋으로 두되 9단계는 배치별 5커밋으로 나눈다.
+  14·15단계는 구현 도중 지시자 요청으로 추가되었다.
 - 커밋 메시지는 한국어로 쓰고 관련 동작 ID를 본문에 남긴다.
 - PR은 `pr-review-process` 스킬에 따라 code-reviewer 에이전트 + Codex 이중 리뷰를 거친 뒤 지시자 승인을 받아 생성한다.
 
