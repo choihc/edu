@@ -5,6 +5,8 @@
  * 테스트에서는 고정값을 넘겨 같은 결과를 재현한다.
  */
 
+import { shuffle } from "./random.js";
+
 /** @typedef {import("../data/vocabulary.js").VocabularyItem} VocabularyItem */
 
 /**
@@ -45,16 +47,6 @@ function hasSimilarReading(a, b) {
   if (a === b) return true;
   if (a.length < 2 || b.length < 2) return false;
   return a.slice(0, 2) === b.slice(0, 2);
-}
-
-/** rand를 쓰는 Fisher-Yates 섞기. 원본은 건드리지 않는다. */
-function shuffle(list, rand) {
-  const result = [...list];
-  for (let i = result.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(rand() * (i + 1));
-    [result[i], result[j]] = [result[j], result[i]];
-  }
-  return result;
 }
 
 /**
