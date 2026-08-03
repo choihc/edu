@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import PracticeQuestionCard from "../components/PracticeQuestionCard.jsx";
+import { useChoiceKeys } from "../hooks/useChoiceKeys.js";
 import { PRACTICE_TYPES, SESSION_SIZE, scoreSession, startSession } from "../lib/practiceSession.js";
-import { mainStyle, palette, shellStyle } from "../theme.js";
+import { hintStyle, mainStyle, palette, shellStyle } from "../theme.js";
 
 function findType(typeId) {
   return PRACTICE_TYPES.find((type) => type.id === typeId);
@@ -37,6 +38,10 @@ export default function PracticePage({ rand = Math.random }) {
     setAnswers({});
     setScored(null);
   };
+
+  // 문항이 열 개 한 화면에 있어 숫자키를 어느 문항에 줄지 정할 수 없으므로,
+  // 여기서는 Enter 채점만 지원한다. 채점 뒤에는 실수로 회차가 지워지지 않게 끈다.
+  useChoiceKeys({ onSubmit: handleSubmit, enabled: Boolean(type) && scored === null });
 
   if (!type) {
     return (
@@ -172,6 +177,8 @@ export default function PracticePage({ rand = Math.random }) {
             </button>
           )}
         </div>
+
+        {!scored && <p style={hintStyle}>Enter를 누르면 바로 채점합니다.</p>}
       </main>
     </div>
   );

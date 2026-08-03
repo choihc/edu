@@ -131,6 +131,25 @@ describe("실전 연습 화면 (S3, AC-8)", () => {
     expect(storage._dump()[STORAGE_KEY]).toBe(saved);
   });
 
+  it("Enter로 채점할 수 있다 (JN4-U08, AC-9)", async () => {
+    const questions = startSession("reading", ZERO);
+    renderPractice("reading");
+    await answerAll(user, questions);
+    await user.keyboard("{Enter}");
+
+    expect(screen.getByTestId("score")).toHaveTextContent("10");
+  });
+
+  it("채점 뒤의 Enter는 새 회차를 시작하지 않는다 (JN4-025)", async () => {
+    const questions = startSession("reading", ZERO);
+    renderPractice("reading");
+    await answerAll(user, questions);
+    await user.keyboard("{Enter}");
+    await user.keyboard("{Enter}");
+
+    expect(screen.getByTestId("score")).toBeInTheDocument();
+  });
+
   it("모든 선택지가 button 요소다 (AC-9)", () => {
     renderPractice("context");
     for (const card of questionCards()) {

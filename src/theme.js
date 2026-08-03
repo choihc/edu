@@ -29,5 +29,14 @@ export const shellStyle = {
 export const mainStyle = {
   maxWidth: 760,
   margin: "0 auto",
-  padding: "32px 18px 72px",
+  padding: "32px 16px 72px",
+};
+
+/** 화면 아래쪽에 붙는 안내 문구 스타일. 키보드 단축키를 알려 준다. */
+export const hintStyle = {
+  margin: "22px 0 0",
+  color: palette.muted,
+  fontSize: 13,
+  lineHeight: 1.7,
+  textAlign: "center",
 };

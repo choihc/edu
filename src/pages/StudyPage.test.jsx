@@ -149,6 +149,33 @@ describe("학습 화면 (S1, AC-4)", () => {
     expect(screen.queryByTestId("choices")).not.toBeInTheDocument();
   });
 
+  it("숫자키 1~4로 선택지를 고를 수 있다 (JN4-U08, AC-9)", async () => {
+    renderStudy(storage);
+    const first = within(screen.getByTestId("choices")).getAllByRole("button")[0].dataset.choice;
+    await user.keyboard("1");
+
+    expect(screen.getByTestId("verdict")).toBeInTheDocument();
+    expect(screen.getByTestId("answer")).toHaveTextContent(FIRST.reading);
+    // 1번 선택지가 정답이었는지에 따라 판정이 갈린다.
+    expect(screen.getByTestId("verdict")).toHaveTextContent(first === FIRST.reading ? "정답" : "오답");
+  });
+
+  it("답한 뒤 Enter로 다음 카드로 넘어간다 (JN4-U08, AC-9)", async () => {
+    renderStudy(storage);
+    await user.click(screen.getByRole("button", { name: FIRST.reading }));
+    await user.keyboard("{Enter}");
+
+    expect(screen.queryByTestId("verdict")).not.toBeInTheDocument();
+    expect(screen.getByTestId("card-subject")).not.toHaveTextContent(FIRST.word);
+  });
+
+  it("아직 답하지 않았으면 Enter는 아무 일도 하지 않는다", async () => {
+    renderStudy(storage);
+    await user.keyboard("{Enter}");
+    expect(screen.getByTestId("card-subject")).toHaveTextContent(FIRST.word);
+    expect(screen.queryByTestId("verdict")).not.toBeInTheDocument();
+  });
+
   it("저장값이 깨져 있어도 오류 없이 학습을 시작한다 (JN4-015)", () => {
     const broken = createStorage({ [STORAGE_KEY]: "깨진 값" });
     renderStudy(broken);

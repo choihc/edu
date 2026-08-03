@@ -1,11 +1,12 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import RecallCard from "../components/RecallCard.jsx";
+import { useChoiceKeys } from "../hooks/useChoiceKeys.js";
 import { VOCABULARY, allIds, findById } from "../data/vocabulary.js";
 import { buildRecallQuestion, pickDirection } from "../lib/quizGenerator.js";
 import { loadProgress, saveProgress } from "../lib/progressStore.js";
 import { initialCard, learnedCount, nextDueAt, pickNextId, review } from "../lib/srs.js";
-import { mainStyle, palette, shellStyle } from "../theme.js";
+import { hintStyle, mainStyle, palette, shellStyle } from "../theme.js";
 
 /** 브라우저 밖(테스트·서버)에서도 안전하게 기본 저장소를 고른다. */
 function defaultStorage() {
@@ -63,6 +64,13 @@ export default function StudyPage({ getNow = Date.now, storage, rand = Math.rand
     }));
   };
 
+  // 답하기 전에는 숫자키로 선택지를 고르고, 답한 뒤에는 Enter로 다음 카드로 넘어간다.
+  useChoiceKeys({
+    onSelect: handleSelect,
+    onSubmit: state.selectedIndex === null ? undefined : handleNext,
+    enabled: state.question !== null,
+  });
+
   const learned = learnedCount(ids, state.progress);
   const upcoming = nextDueAt(ids, state.progress);
 
@@ -96,12 +104,17 @@ export default function StudyPage({ getNow = Date.now, storage, rand = Math.rand
         </header>
 
         {state.question ? (
-          <RecallCard
-            question={state.question}
-            selectedIndex={state.selectedIndex}
-            onSelect={handleSelect}
-            onNext={handleNext}
-          />
+          <>
+            <RecallCard
+              question={state.question}
+              selectedIndex={state.selectedIndex}
+              onSelect={handleSelect}
+              onNext={handleNext}
+            />
+            <p style={hintStyle}>
+              숫자키 1~4로 선택지를 고르고, 답을 확인한 뒤 Enter로 다음 카드로 넘어갈 수 있습니다.
+            </p>
+          </>
         ) : (
           <section
             data-testid="empty-state"

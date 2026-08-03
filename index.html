@@ -5,8 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>JLPT N4 문자·어휘</title>
     <style>
-      html, body, #root { margin: 0; padding: 0; height: 100%; }
-      body { background: #f7f3ea; color: #26211b; }
+      *, *::before, *::after { box-sizing: border-box; }
+      html, body, #root { margin: 0; padding: 0; min-height: 100%; }
+      /* 좁은 화면에서 가로 스크롤이 생기지 않게 한다 (수용 조건 AC-10) */
+      html, body { max-width: 100%; overflow-x: hidden; }
+      body {
+        background: #f7f3ea;
+        color: #26211b;
+        -webkit-text-size-adjust: 100%;
+      }
+      /* 긴 일본어·한국어 문장이 상자를 넘지 않도록 어디서든 줄을 바꾼다 */
+      p, li, h1, h2, button, a, dd { overflow-wrap: anywhere; }
+      button { font: inherit; }
     </style>
   </head>
   <body>
