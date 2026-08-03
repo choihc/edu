@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
+import ResetProgressButton from "../components/ResetProgressButton.jsx";
 import { allIds } from "../data/vocabulary.js";
-import { loadProgress } from "../lib/progressStore.js";
+import { clearProgress, loadProgress } from "../lib/progressStore.js";
 import { learnedCount } from "../lib/srs.js";
 import { PRACTICE_TYPES } from "../lib/practiceSession.js";
 import { mainStyle, palette, shellStyle } from "../theme.js";
@@ -11,13 +13,23 @@ function defaultStorage() {
 
 /**
  * 홈 화면. N4 학습 경험의 진입점만 둔다 (JN4-001).
- * 현재 학습 진도도 함께 보여 준다 (JN4-028).
+ * 현재 학습 진도를 보여 주고 (JN4-028), 진도 초기화 수단을 제공한다 (JN4-037~JN4-041).
  */
 export default function HomePage({ storage }) {
   const store = storage ?? defaultStorage();
   const ids = allIds();
-  const learned = learnedCount(ids, loadProgress(store));
+
+  // 초기화하면 화면의 진도 표시도 함께 갱신해야 하므로 진도를 상태로 들고 있는다.
+  const [progress, setProgress] = useState(() => loadProgress(store));
+
+  const learned = learnedCount(ids, progress);
   const percent = Math.round((learned / ids.length) * 100);
+  const hasSavedProgress = Object.keys(progress).length > 0;
+
+  const handleReset = () => {
+    clearProgress(store);
+    setProgress({});
+  };
 
   return (
     <div style={shellStyle}>
@@ -72,6 +84,11 @@ export default function HomePage({ storage }) {
           >
             <div style={{ width: `${percent}%`, height: "100%", background: palette.blue }} />
           </div>
+          {hasSavedProgress && (
+            <div style={{ marginTop: 16 }}>
+              <ResetProgressButton onConfirm={handleReset} />
+            </div>
+          )}
         </section>
 
         <section style={{ display: "grid", gap: 14 }}>

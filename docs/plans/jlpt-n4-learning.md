@@ -513,6 +513,32 @@ it("한자 읽기 유형은 후리가나를 켜도 밑줄 대상의 읽기를 �
 
 ---
 
+### 16단계 — 학습 진도 초기화 (JN4-037~JN4-041, AC-16, AC-17)
+
+**위험도**: 낮음 · **산출물**: `src/lib/progressStore.js`, `src/components/ResetProgressButton.jsx`, `src/pages/HomePage.jsx`
+
+**인터페이스 계약 (생산)**
+```jsx
+// src/lib/progressStore.js
+export function clearProgress(storage);   // 진도 키만 제거, 예외를 밖으로 던지지 않음
+// src/components/ResetProgressButton.jsx
+export default function ResetProgressButton({ onConfirm });
+```
+
+**RED** — `progressStore.test.js`, `HomePage.test.jsx`에 추가
+```js
+it("저장된 진도를 모두 지운다", ...)                          // JN4-039
+it("후리가나 설정은 함께 지우지 않는다", ...)                  // JN4-041, AC-17
+it("저장된 진도가 없으면 초기화 버튼을 보여 주지 않는다", ...)   // JN4-037
+it("버튼을 한 번 누르면 바로 지우지 않고 확인과 취소를 묻는다", ...) // JN4-038
+it("취소를 누르면 진도를 그대로 유지한다", ...)                 // JN4-040, AC-16
+```
+
+되돌릴 수 없는 동작이므로 확인 단계를 컴포넌트 안에 둔다. 지우는 일은 컴포넌트가 하지 않고
+화면이 `onConfirm`으로 받는다. 초기화 후 진도 표시를 갱신하려면 홈 화면이 진도를 상태로 들어야 한다.
+
+---
+
 ### 13단계 — 통합 검증과 정리
 
 `npm test`, `npm run build`를 돌리고, 아래 수동 체크리스트를 수행한다. 스펙의 §6 수용 조건 12개를 하나씩 대조해 완료 보고에 결과를 적는다.
