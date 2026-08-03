@@ -1,10 +1,12 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import RecallCard from "../components/RecallCard.jsx";
+import FuriganaToggle from "../components/FuriganaToggle.jsx";
 import { useChoiceKeys } from "../hooks/useChoiceKeys.js";
 import { VOCABULARY, allIds, findById } from "../data/vocabulary.js";
 import { buildRecallQuestion, pickDirection } from "../lib/quizGenerator.js";
 import { loadProgress, saveProgress } from "../lib/progressStore.js";
+import { loadFurigana, saveFurigana } from "../lib/settingsStore.js";
 import { initialCard, learnedCount, nextDueAt, pickNextId, review } from "../lib/srs.js";
 import { hintStyle, mainStyle, palette, shellStyle } from "../theme.js";
 
@@ -36,6 +38,14 @@ export default function StudyPage({ getNow = Date.now, storage, rand = Math.rand
     const id = pickNextId(ids, progress, getNow());
     if (id === null) return null;
     return buildRecallQuestion(findById(id), VOCABULARY, pickDirection(rand), rand);
+  };
+
+  const [furigana, setFurigana] = useState(() => loadFurigana(store));
+
+  const toggleFurigana = () => {
+    const next = !furigana;
+    saveFurigana(store, next);
+    setFurigana(next);
   };
 
   const [state, setState] = useState(() => {
@@ -78,22 +88,25 @@ export default function StudyPage({ getNow = Date.now, storage, rand = Math.rand
     <div style={shellStyle}>
       <main style={mainStyle}>
         <header style={{ marginBottom: 24 }}>
-          <Link
-            to="/"
-            style={{
-              display: "inline-flex",
-              color: palette.muted,
-              textDecoration: "none",
-              border: `1px solid ${palette.line}`,
-              background: "rgba(255,250,241,0.76)",
-              padding: "8px 12px",
-              borderRadius: 8,
-              fontWeight: 800,
-              fontSize: 13,
-            }}
-          >
-            홈으로
-          </Link>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+            <Link
+              to="/"
+              style={{
+                display: "inline-flex",
+                color: palette.muted,
+                textDecoration: "none",
+                border: `1px solid ${palette.line}`,
+                background: "rgba(255,250,241,0.76)",
+                padding: "8px 12px",
+                borderRadius: 8,
+                fontWeight: 800,
+                fontSize: 13,
+              }}
+            >
+              홈으로
+            </Link>
+            <FuriganaToggle enabled={furigana} onToggle={toggleFurigana} />
+          </div>
           <h1 style={{ margin: "18px 0 6px", fontSize: "clamp(26px, 5vw, 36px)", color: palette.ink }}>
             어휘 학습
           </h1>
@@ -110,6 +123,7 @@ export default function StudyPage({ getNow = Date.now, storage, rand = Math.rand
               selectedIndex={state.selectedIndex}
               onSelect={handleSelect}
               onNext={handleNext}
+              furigana={furigana}
             />
             <p style={hintStyle}>
               숫자키 1~4로 선택지를 고르고, 답을 확인한 뒤 Enter로 다음 카드로 넘어갈 수 있습니다.

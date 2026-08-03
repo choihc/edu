@@ -1,29 +1,5 @@
-import { MARKER } from "../lib/questionBuilders.js";
+import JapaneseText from "./JapaneseText.jsx";
 import { palette } from "../theme.js";
-
-/**
- * 문장 안의 밑줄 표식(＿…＿)을 실제 밑줄로 그린다.
- * 표식이 없는 문장(문맥상 어휘·용법)은 그대로 보여 준다.
- */
-function Sentence({ text }) {
-  const parts = text.split(MARKER);
-  return (
-    <p lang="ja" style={{ margin: "0 0 18px", fontSize: 19, lineHeight: 1.9, color: palette.ink }}>
-      {parts.map((part, index) =>
-        index % 2 === 1 ? (
-          <strong
-            key={index}
-            style={{ borderBottom: `2px solid ${palette.red}`, fontWeight: 800, padding: "0 2px" }}
-          >
-            {part}
-          </strong>
-        ) : (
-          <span key={index}>{part}</span>
-        )
-      )}
-    </p>
-  );
-}
 
 /**
  * 실전 연습 문항 한 개.
@@ -34,8 +10,11 @@ function Sentence({ text }) {
  * @param {number | null} props.selected
  * @param {(index: number) => void} props.onSelect
  * @param {null | { isCorrect: boolean, isUnanswered: boolean }} props.result 채점 전이면 null
+ * @param {boolean} [props.furigana] 후리가나 표시 여부
  */
-export default function PracticeQuestionCard({ number, question, selected, onSelect, result }) {
+export default function PracticeQuestionCard({ number, question, selected, onSelect, result, furigana = false }) {
+  // 한자 읽기 유형은 밑줄 대상의 읽기가 곧 정답이므로 그 부분만 후리가나에서 뺀다 (JN4-034).
+  const excludeUnderlined = question.typeId === "reading";
   const graded = result !== null;
 
   return (
@@ -74,10 +53,18 @@ export default function PracticeQuestionCard({ number, question, selected, onSel
           lang="ja"
           style={{ margin: "0 0 16px", fontSize: 30, fontWeight: 800, color: palette.ink }}
         >
-          {question.subject}
+          <JapaneseText text={question.subject} furigana={furigana} />
         </p>
       )}
-      {question.sentence && <Sentence text={question.sentence} />}
+      {question.sentence && (
+        <p lang="ja" style={{ margin: "0 0 18px", fontSize: 19, lineHeight: 2.1, color: palette.ink }}>
+          <JapaneseText
+            text={question.sentence}
+            furigana={furigana}
+            excludeUnderlined={excludeUnderlined}
+          />
+        </p>
+      )}
 
       <div style={{ display: "grid", gap: 8 }}>
         {question.choices.map((choice, index) => {
@@ -126,7 +113,9 @@ export default function PracticeQuestionCard({ number, question, selected, onSel
               <span aria-hidden="true" style={{ color: palette.muted, fontSize: 13, marginRight: 10 }}>
                 {index + 1}
               </span>
-              <span lang="ja">{choice}</span>
+              <span lang="ja">
+                <JapaneseText text={choice} furigana={furigana} />
+              </span>
             </button>
           );
         })}

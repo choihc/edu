@@ -5,6 +5,7 @@ import { MemoryRouter } from "react-router-dom";
 import StudyPage from "./StudyPage.jsx";
 import { VOCABULARY } from "../data/vocabulary.js";
 import { STORAGE_KEY, SCHEMA_VERSION, loadProgress } from "../lib/progressStore.js";
+import { FURIGANA_KEY, loadFurigana } from "../lib/settingsStore.js";
 import { DAY, MINUTE } from "../lib/srs.js";
 
 const NOW = 1_700_000_000_000;
@@ -174,6 +175,40 @@ describe("학습 화면 (S1, AC-4)", () => {
     await user.keyboard("{Enter}");
     expect(screen.getByTestId("card-subject")).toHaveTextContent(FIRST.word);
     expect(screen.queryByTestId("verdict")).not.toBeInTheDocument();
+  });
+
+  it("후리가나는 처음에 꺼져 있다 (JN4-033)", () => {
+    renderStudy(storage);
+    expect(document.querySelectorAll("ruby")).toHaveLength(0);
+  });
+
+  it("후리가나를 켜고 답하면 예문의 한자에 읽기가 붙는다 (JN4-032)", async () => {
+    // 답하기 전에는 일본어 한자가 화면에 없다(제시 대상은 JN4-034로 제외). 예문은 답한 뒤에 나온다.
+    renderStudy(storage);
+    await user.click(screen.getByRole("button", { name: /후리가나/ }));
+    await user.click(screen.getByRole("button", { name: FIRST.reading }));
+
+    expect(document.querySelectorAll("ruby").length).toBeGreaterThan(0);
+  });
+
+  it("후리가나 설정을 저장하고 다시 열 때 복원한다 (JN4-035, AC-15)", async () => {
+    renderStudy(storage);
+    await user.click(screen.getByRole("button", { name: /후리가나/ }));
+    expect(loadFurigana(storage)).toBe(true);
+
+    const saved = createStorage({ [FURIGANA_KEY]: "on" });
+    renderStudy(saved);
+    expect(screen.getAllByRole("button", { name: /후리가나 켜짐/ }).length).toBeGreaterThan(0);
+  });
+
+  it("후리가나를 켜도 답하기 전에는 정답 읽기가 드러나지 않는다 (JN4-034, AC-14)", async () => {
+    renderStudy(storage);
+    await user.click(screen.getByRole("button", { name: /후리가나/ }));
+
+    // 표기→읽기 회상에서 제시된 단어에 후리가나를 붙이면 정답이 그대로 보인다.
+    const subject = screen.getByTestId("card-subject");
+    expect(subject.querySelectorAll("ruby")).toHaveLength(0);
+    expect(subject.textContent).not.toContain(FIRST.reading);
   });
 
   it("저장값이 깨져 있어도 오류 없이 학습을 시작한다 (JN4-015)", () => {

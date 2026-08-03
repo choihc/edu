@@ -5,6 +5,7 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import PracticePage from "./PracticePage.jsx";
 import { STORAGE_KEY, SCHEMA_VERSION } from "../lib/progressStore.js";
 import { startSession } from "../lib/practiceSession.js";
+import { loadFurigana } from "../lib/settingsStore.js";
 
 const ZERO = () => 0;
 
@@ -148,6 +149,39 @@ describe("실전 연습 화면 (S3, AC-8)", () => {
     await user.keyboard("{Enter}");
 
     expect(screen.getByTestId("score")).toBeInTheDocument();
+  });
+
+  it("후리가나는 처음에 꺼져 있다 (JN4-033)", () => {
+    renderPractice("synonym");
+    expect(document.querySelectorAll("ruby")).toHaveLength(0);
+  });
+
+  it("후리가나 버튼을 누르면 문장에 읽기가 붙는다 (JN4-032)", async () => {
+    const storage = createStorage();
+    renderPractice("synonym", storage);
+    await user.click(screen.getByRole("button", { name: /후리가나/ }));
+
+    expect(document.querySelectorAll("ruby").length).toBeGreaterThan(0);
+    expect(loadFurigana(storage)).toBe(true);
+  });
+
+  it("한자 읽기 유형은 후리가나를 켜도 밑줄 대상의 읽기를 보여 주지 않는다 (JN4-034, AC-14)", async () => {
+    const questions = startSession("reading", ZERO);
+    renderPractice("reading");
+    await user.click(screen.getByRole("button", { name: /후리가나/ }));
+
+    const answer = questions[0].choices[questions[0].answerIndex];
+    const underlined = within(questionCards()[0]).getByTestId("underlined");
+    expect(underlined.querySelectorAll("ruby")).toHaveLength(0);
+    expect(underlined.textContent).not.toContain(answer);
+  });
+
+  it("표기 유형은 밑줄 대상이 이미 히라가나라 후리가나가 붙지 않는다 (JN4-018)", async () => {
+    renderPractice("orthography");
+    await user.click(screen.getByRole("button", { name: /후리가나/ }));
+
+    const underlined = within(questionCards()[0]).getByTestId("underlined");
+    expect(underlined.querySelectorAll("ruby")).toHaveLength(0);
   });
 
   it("모든 선택지가 button 요소다 (AC-9)", () => {

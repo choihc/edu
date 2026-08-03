@@ -1,3 +1,4 @@
+import JapaneseText from "./JapaneseText.jsx";
 import { palette } from "../theme.js";
 
 /**
@@ -9,8 +10,9 @@ import { palette } from "../theme.js";
  * @param {number | null} props.selectedIndex  아직 답하지 않았으면 null
  * @param {(index: number) => void} props.onSelect
  * @param {() => void} props.onNext
+ * @param {boolean} [props.furigana] 후리가나 표시 여부
  */
-export default function RecallCard({ question, selectedIndex, onSelect, onNext }) {
+export default function RecallCard({ question, selectedIndex, onSelect, onNext, furigana = false }) {
   const answered = selectedIndex !== null;
   const isCorrect = selectedIndex === question.answerIndex;
   const { item } = question;
@@ -40,7 +42,7 @@ export default function RecallCard({ question, selectedIndex, onSelect, onNext }
           wordBreak: "keep-all",
         }}
       >
-        {question.subject}
+        {answered ? <JapaneseText text={question.subject} furigana={furigana} /> : question.subject}
       </p>
 
       <div data-testid="choices" style={{ display: "grid", gap: 10 }}>
@@ -86,7 +88,7 @@ export default function RecallCard({ question, selectedIndex, onSelect, onNext }
               <span aria-hidden="true" style={{ color: palette.muted, fontSize: 13, marginRight: 10 }}>
                 {index + 1}
               </span>
-              {choice}
+              <JapaneseText text={choice} furigana={furigana} />
             </button>
           );
         })}
@@ -108,18 +110,22 @@ export default function RecallCard({ question, selectedIndex, onSelect, onNext }
 
           <dl style={{ margin: "18px 0 0", display: "grid", gap: 12 }}>
             <Row label="정답" testId="answer">
-              <span lang="ja">{question.choices[question.answerIndex]}</span>
+              <span lang="ja">
+                <JapaneseText text={question.choices[question.answerIndex]} furigana={furigana} />
+              </span>
             </Row>
             <Row label="단어">
               <span lang="ja">
-                {item.word} ({item.reading})
+                <JapaneseText text={item.word} furigana={furigana} /> ({item.reading})
               </span>{" "}
               — {item.meaning}
             </Row>
             <Row label="한국식 음훈">{item.sinoKorean}</Row>
             <Row label="기억 힌트">{item.hint}</Row>
             <Row label="예문">
-              <span lang="ja">{item.example}</span>
+              <span lang="ja">
+                <JapaneseText text={item.example} furigana={furigana} />
+              </span>
               <br />
               <span style={{ color: palette.muted }}>{item.exampleKr}</span>
             </Row>

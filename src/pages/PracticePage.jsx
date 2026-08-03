@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import PracticeQuestionCard from "../components/PracticeQuestionCard.jsx";
+import FuriganaToggle from "../components/FuriganaToggle.jsx";
 import { useChoiceKeys } from "../hooks/useChoiceKeys.js";
+import { loadFurigana, saveFurigana } from "../lib/settingsStore.js";
 import { PRACTICE_TYPES, SESSION_SIZE, scoreSession, startSession } from "../lib/practiceSession.js";
 import { hintStyle, mainStyle, palette, shellStyle } from "../theme.js";
 
@@ -12,17 +14,28 @@ function findType(typeId) {
 /**
  * 실전 연습 한 회차 화면. 스펙 S3, JN4-016, JN4-022, JN4-023, JN4-025, JN4-029.
  *
- * 이 화면은 진도 저장소를 읽지도 쓰지도 않는다. 실전 연습이 복습 예약을 바꾸지
- * 않는다는 JN4-029를 구조로 보장하기 위해서다. storage prop은 그 사실을
- * 테스트에서 확인하기 위해 받아 두기만 한다.
+ * 이 화면은 학습 진도를 읽지도 쓰지도 않는다. 실전 연습이 복습 예약을 바꾸지 않는다는
+ * JN4-029를 구조로 보장하기 위해서다. 저장소는 후리가나 설정(다른 키)에만 쓴다.
  */
-export default function PracticePage({ rand = Math.random }) {
+function defaultStorage() {
+  return typeof window === "undefined" ? null : window.localStorage;
+}
+
+export default function PracticePage({ rand = Math.random, storage }) {
+  const store = storage ?? defaultStorage();
   const { typeId } = useParams();
   const type = findType(typeId);
 
   const [session, setSession] = useState(() => startSession(typeId, rand));
   const [answers, setAnswers] = useState({});
   const [scored, setScored] = useState(null);
+  const [furigana, setFurigana] = useState(() => loadFurigana(store));
+
+  const toggleFurigana = () => {
+    const next = !furigana;
+    saveFurigana(store, next);
+    setFurigana(next);
+  };
 
   const handleSelect = (questionId, index) => {
     if (scored) return;
@@ -76,22 +89,25 @@ export default function PracticePage({ rand = Math.random }) {
     <div style={shellStyle}>
       <main style={mainStyle}>
         <header style={{ marginBottom: 22 }}>
-          <Link
-            to="/practice"
-            style={{
-              display: "inline-flex",
-              color: palette.muted,
-              textDecoration: "none",
-              border: `1px solid ${palette.line}`,
-              background: "rgba(255,250,241,0.76)",
-              padding: "8px 12px",
-              borderRadius: 8,
-              fontWeight: 800,
-              fontSize: 13,
-            }}
-          >
-            유형 목록으로
-          </Link>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+            <Link
+              to="/practice"
+              style={{
+                display: "inline-flex",
+                color: palette.muted,
+                textDecoration: "none",
+                border: `1px solid ${palette.line}`,
+                background: "rgba(255,250,241,0.76)",
+                padding: "8px 12px",
+                borderRadius: 8,
+                fontWeight: 800,
+                fontSize: 13,
+              }}
+            >
+              유형 목록으로
+            </Link>
+            <FuriganaToggle enabled={furigana} onToggle={toggleFurigana} />
+          </div>
           <h1 style={{ margin: "18px 0 6px", fontSize: "clamp(24px, 5vw, 32px)", color: palette.ink }}>
             {type.label}
           </h1>
@@ -132,6 +148,7 @@ export default function PracticePage({ rand = Math.random }) {
               selected={answers[question.id] ?? null}
               onSelect={(choiceIndex) => handleSelect(question.id, choiceIndex)}
               result={scored ? scored.results[index] : null}
+              furigana={furigana}
             />
           ))}
         </div>
