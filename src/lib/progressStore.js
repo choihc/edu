@@ -55,6 +55,23 @@ export function loadProgress(storage) {
 }
 
 /**
+ * 저장된 진도를 모두 지운다 (JN4-039). 되돌릴 수 없다.
+ *
+ * 진도 키만 지우므로 후리가나 설정처럼 다른 키에 담긴 값은 그대로 남는다 (JN4-041).
+ * 지우기가 실패해도 학습을 막을 이유가 아니므로 예외를 밖으로 던지지 않는다.
+ *
+ * @param {Storage | null} storage
+ */
+export function clearProgress(storage) {
+  if (!storage) return;
+  try {
+    storage.removeItem(STORAGE_KEY);
+  } catch {
+    // 지우지 못해도 화면의 진도 표시는 초기화된 상태로 이어 간다.
+  }
+}
+
+/**
  * 저장 실패(용량 초과·사생활 보호 모드 등)는 학습을 막을 이유가 아니므로 조용히 넘어간다.
  * @param {Storage | null} storage
  * @param {Record<string, CardState>} progress

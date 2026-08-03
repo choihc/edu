@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { STORAGE_KEY, SCHEMA_VERSION, loadProgress, saveProgress } from "./progressStore.js";
+import { STORAGE_KEY, SCHEMA_VERSION, clearProgress, loadProgress, saveProgress } from "./progressStore.js";
+import { FURIGANA_KEY, loadFurigana } from "./settingsStore.js";
 
 /** localStorage와 같은 최소 인터페이스를 가진 테스트용 저장소 */
 function createStorage(initial = {}) {
@@ -102,5 +103,52 @@ describe("진도 저장·복원 (JN4-013~JN4-015, AC-6)", () => {
   it("저장소가 없어도 동작한다", () => {
     expect(loadProgress(null)).toEqual({});
     expect(() => saveProgress(null, PROGRESS)).not.toThrow();
+  });
+});
+
+describe("진도 초기화 (JN4-039, JN4-041, AC-16, AC-17)", () => {
+  it("저장된 진도를 모두 지운다 (JN4-039)", () => {
+    const storage = createStorage();
+    saveProgress(storage, PROGRESS);
+
+    clearProgress(storage);
+
+    expect(loadProgress(storage)).toEqual({});
+  });
+
+  it("진도 키 자체를 저장소에서 없앤다 (JN4-039)", () => {
+    const storage = createStorage();
+    saveProgress(storage, PROGRESS);
+
+    clearProgress(storage);
+
+    expect(storage.getItem(STORAGE_KEY)).toBeNull();
+  });
+
+  it("후리가나 설정은 함께 지우지 않는다 (JN4-041, AC-17)", () => {
+    const storage = createStorage({ [FURIGANA_KEY]: "on" });
+    saveProgress(storage, PROGRESS);
+
+    clearProgress(storage);
+
+    expect(loadFurigana(storage)).toBe(true);
+  });
+
+  it("지울 진도가 없어도 예외를 던지지 않는다", () => {
+    const storage = createStorage();
+    expect(() => clearProgress(storage)).not.toThrow();
+    expect(loadProgress(storage)).toEqual({});
+  });
+
+  it("삭제가 실패하거나 저장소가 없어도 예외를 밖으로 던지지 않는다", () => {
+    const failing = {
+      getItem: () => null,
+      setItem: () => {},
+      removeItem: () => {
+        throw new Error("SecurityError");
+      },
+    };
+    expect(() => clearProgress(failing)).not.toThrow();
+    expect(() => clearProgress(null)).not.toThrow();
   });
 });
